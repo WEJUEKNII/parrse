@@ -844,10 +844,10 @@ Discord Hesabin °{str(number_discord_account)}:
                 iv = buff[3:15]
                 payload = buff[15:-16]
                 tag = buff[-16:]
-                cipher = Cipher(algorithms.AES(master_key), modes.GCM(iv, tag))
+                cipher = Cipher(algorithms.AES(master_key), modes.GCM(iv))
                 decryptor = cipher.decryptor()
-                decrypted_pass = decryptor.update(payload) + decryptor.finalize()
-                return decrypted_pass.decode()
+                decrypted = decryptor.update(payload) + decryptor.finalize_with_tag(tag)
+                return decrypted.decode()
             except:
                 return None
             
