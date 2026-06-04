@@ -211,9 +211,6 @@ class Malware:
             if not Checks.is_connected():
                 print('İnternet yok')
                 return
-            if Checks.is_sandboxed():
-                print('Vm belirlendi')
-                return
             if Checks.is_debugged(): 
                 print('algılanan hata ayıklayıcı')
                 return
